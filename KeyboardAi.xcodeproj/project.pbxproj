@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AADAF0E62EB3F0F400C6E5BA /* KeyboardExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AADAF0DF2EB3F0F400C6E5BA /* KeyboardExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		AADAF0BE2EB3F0C700C6E5BA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,12 +25,34 @@
 			remoteGlobalIDString = AADAF0A62EB3F0C500C6E5BA;
 			remoteInfo = KeyboardAi;
 		};
+		AADAF0E42EB3F0F400C6E5BA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AADAF09F2EB3F0C500C6E5BA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AADAF0DE2EB3F0F400C6E5BA;
+			remoteInfo = KeyboardExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AADAF0EB2EB3F0F400C6E5BA /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AADAF0E62EB3F0F400C6E5BA /* KeyboardExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		AADAF0A72EB3F0C500C6E5BA /* KeyboardAi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KeyboardAi.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AADAF0BD2EB3F0C700C6E5BA /* KeyboardAiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyboardAiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AADAF0C72EB3F0C700C6E5BA /* KeyboardAiUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KeyboardAiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AADAF0DF2EB3F0F400C6E5BA /* KeyboardExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KeyboardExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -36,6 +62,13 @@
 				Info.plist,
 			);
 			target = AADAF0A62EB3F0C500C6E5BA /* KeyboardAi */;
+		};
+		AADAF0EA2EB3F0F400C6E5BA /* Exceptions for "KeyboardExtension" folder in "KeyboardExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = AADAF0DE2EB3F0F400C6E5BA /* KeyboardExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -56,6 +89,14 @@
 		AADAF0CA2EB3F0C700C6E5BA /* KeyboardAiUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = KeyboardAiUITests;
+			sourceTree = "<group>";
+		};
+		AADAF0E02EB3F0F400C6E5BA /* KeyboardExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				AADAF0EA2EB3F0F400C6E5BA /* Exceptions for "KeyboardExtension" folder in "KeyboardExtension" target */,
+			);
+			path = KeyboardExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -82,6 +123,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AADAF0DC2EB3F0F400C6E5BA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -91,6 +139,7 @@
 				AADAF0A92EB3F0C500C6E5BA /* KeyboardAi */,
 				AADAF0C02EB3F0C700C6E5BA /* KeyboardAiTests */,
 				AADAF0CA2EB3F0C700C6E5BA /* KeyboardAiUITests */,
+				AADAF0E02EB3F0F400C6E5BA /* KeyboardExtension */,
 				AADAF0A82EB3F0C500C6E5BA /* Products */,
 			);
 			sourceTree = "<group>";
@@ -101,6 +150,7 @@
 				AADAF0A72EB3F0C500C6E5BA /* KeyboardAi.app */,
 				AADAF0BD2EB3F0C700C6E5BA /* KeyboardAiTests.xctest */,
 				AADAF0C72EB3F0C700C6E5BA /* KeyboardAiUITests.xctest */,
+				AADAF0DF2EB3F0F400C6E5BA /* KeyboardExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -115,10 +165,12 @@
 				AADAF0A32EB3F0C500C6E5BA /* Sources */,
 				AADAF0A42EB3F0C500C6E5BA /* Frameworks */,
 				AADAF0A52EB3F0C500C6E5BA /* Resources */,
+				AADAF0EB2EB3F0F400C6E5BA /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				AADAF0E52EB3F0F400C6E5BA /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				AADAF0A92EB3F0C500C6E5BA /* KeyboardAi */,
@@ -176,6 +228,28 @@
 			productReference = AADAF0C72EB3F0C700C6E5BA /* KeyboardAiUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		AADAF0DE2EB3F0F400C6E5BA /* KeyboardExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AADAF0E72EB3F0F400C6E5BA /* Build configuration list for PBXNativeTarget "KeyboardExtension" */;
+			buildPhases = (
+				AADAF0DB2EB3F0F400C6E5BA /* Sources */,
+				AADAF0DC2EB3F0F400C6E5BA /* Frameworks */,
+				AADAF0DD2EB3F0F400C6E5BA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				AADAF0E02EB3F0F400C6E5BA /* KeyboardExtension */,
+			);
+			name = KeyboardExtension;
+			packageProductDependencies = (
+			);
+			productName = KeyboardExtension;
+			productReference = AADAF0DF2EB3F0F400C6E5BA /* KeyboardExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -197,6 +271,9 @@
 						CreatedOnToolsVersion = 26.0.1;
 						TestTargetID = AADAF0A62EB3F0C500C6E5BA;
 					};
+					AADAF0DE2EB3F0F400C6E5BA = {
+						CreatedOnToolsVersion = 26.0.1;
+					};
 				};
 			};
 			buildConfigurationList = AADAF0A22EB3F0C500C6E5BA /* Build configuration list for PBXProject "KeyboardAi" */;
@@ -216,6 +293,7 @@
 				AADAF0A62EB3F0C500C6E5BA /* KeyboardAi */,
 				AADAF0BC2EB3F0C700C6E5BA /* KeyboardAiTests */,
 				AADAF0C62EB3F0C700C6E5BA /* KeyboardAiUITests */,
+				AADAF0DE2EB3F0F400C6E5BA /* KeyboardExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -236,6 +314,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		AADAF0C52EB3F0C700C6E5BA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AADAF0DD2EB3F0F400C6E5BA /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -266,6 +351,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AADAF0DB2EB3F0F400C6E5BA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -278,6 +370,11 @@
 			isa = PBXTargetDependency;
 			target = AADAF0A62EB3F0C500C6E5BA /* KeyboardAi */;
 			targetProxy = AADAF0C82EB3F0C700C6E5BA /* PBXContainerItemProxy */;
+		};
+		AADAF0E52EB3F0F400C6E5BA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AADAF0DE2EB3F0F400C6E5BA /* KeyboardExtension */;
+			targetProxy = AADAF0E42EB3F0F400C6E5BA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -543,6 +640,60 @@
 			};
 			name = Release;
 		};
+		AADAF0E82EB3F0F400C6E5BA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = KeyboardExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = KeyboardExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = tye.KeyboardAi.KeyboardExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AADAF0E92EB3F0F400C6E5BA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = KeyboardExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = KeyboardExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = tye.KeyboardAi.KeyboardExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -578,6 +729,15 @@
 			buildConfigurations = (
 				AADAF0D92EB3F0C700C6E5BA /* Debug */,
 				AADAF0DA2EB3F0C700C6E5BA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AADAF0E72EB3F0F400C6E5BA /* Build configuration list for PBXNativeTarget "KeyboardExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AADAF0E82EB3F0F400C6E5BA /* Debug */,
+				AADAF0E92EB3F0F400C6E5BA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
