@@ -9,143 +9,311 @@ import UIKit
 
 class ViewController: UIViewController {
 
-    private var textField: UITextField!
+    private var apiKeyTextField: UITextField!
     private var saveButton: UIButton!
-    private var instructionLabel: UILabel!
-    private var previewLabel: UILabel!
+    private var testButton: UIButton!
+    private var statusLabel: UILabel!
+    private var loadingIndicator: UIActivityIndicatorView!
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         setupUI()
-        loadCurrentButtonText()
+        loadCurrentAPIKey()
     }
 
     private func setupUI() {
         view.backgroundColor = .systemBackground
 
+        // Scroll view for keyboard avoidance
+        let scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(scrollView)
+
+        let contentView = UIView()
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.addSubview(contentView)
+
         // Title label
         let titleLabel = UILabel()
-        titleLabel.text = "Configuration du Clavier"
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 24)
+        titleLabel.text = "✨ KeyboardAi Setup"
+        titleLabel.font = UIFont.boldSystemFont(ofSize: 28)
         titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(titleLabel)
+        contentView.addSubview(titleLabel)
+
+        // API Key Section Header
+        let apiKeyHeader = UILabel()
+        apiKeyHeader.text = "🔑 OpenAI API Key"
+        apiKeyHeader.font = UIFont.boldSystemFont(ofSize: 20)
+        apiKeyHeader.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(apiKeyHeader)
 
         // Instruction label
-        instructionLabel = UILabel()
-        instructionLabel.text = "Entrez le texte que vous voulez que le bouton écrive:"
-        instructionLabel.font = UIFont.systemFont(ofSize: 16)
+        let instructionLabel = UILabel()
+        instructionLabel.text = "Enter your OpenAI API key to enable AI-powered text improvement.\n\nGet your API key at: platform.openai.com"
+        instructionLabel.font = UIFont.systemFont(ofSize: 14)
+        instructionLabel.textColor = .secondaryLabel
         instructionLabel.textAlignment = .center
         instructionLabel.numberOfLines = 0
         instructionLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(instructionLabel)
+        contentView.addSubview(instructionLabel)
 
-        // Text field
-        textField = UITextField()
-        textField.placeholder = "Bonjour"
-        textField.borderStyle = .roundedRect
-        textField.font = UIFont.systemFont(ofSize: 18)
-        textField.textAlignment = .center
-        textField.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(textField)
+        // API Key text field
+        apiKeyTextField = UITextField()
+        apiKeyTextField.placeholder = "sk-..."
+        apiKeyTextField.borderStyle = .roundedRect
+        apiKeyTextField.font = UIFont.systemFont(ofSize: 14)
+        apiKeyTextField.isSecureTextEntry = true
+        apiKeyTextField.autocapitalizationType = .none
+        apiKeyTextField.autocorrectionType = .no
+        apiKeyTextField.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(apiKeyTextField)
 
-        // Preview label
-        previewLabel = UILabel()
-        previewLabel.text = "Aperçu: "
-        previewLabel.font = UIFont.systemFont(ofSize: 14)
-        previewLabel.textColor = .secondaryLabel
-        previewLabel.textAlignment = .center
-        previewLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(previewLabel)
+        // Show/Hide button
+        let toggleButton = UIButton(type: .system)
+        toggleButton.setTitle("👁", for: .normal)
+        toggleButton.titleLabel?.font = UIFont.systemFont(ofSize: 20)
+        toggleButton.translatesAutoresizingMaskIntoConstraints = false
+        toggleButton.addTarget(self, action: #selector(handleToggleVisibility), for: .touchUpInside)
+        contentView.addSubview(toggleButton)
 
         // Save button
         saveButton = UIButton(type: .system)
-        saveButton.setTitle("Enregistrer", for: .normal)
-        saveButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        saveButton.setTitle("💾 Save API Key", for: .normal)
+        saveButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
         saveButton.backgroundColor = UIColor.systemBlue
         saveButton.setTitleColor(.white, for: .normal)
         saveButton.layer.cornerRadius = 12
         saveButton.translatesAutoresizingMaskIntoConstraints = false
         saveButton.addTarget(self, action: #selector(handleSaveButtonTapped), for: .touchUpInside)
-        view.addSubview(saveButton)
+        contentView.addSubview(saveButton)
+
+        // Test button
+        testButton = UIButton(type: .system)
+        testButton.setTitle("🧪 Test API Key", for: .normal)
+        testButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
+        testButton.backgroundColor = UIColor.systemGreen
+        testButton.setTitleColor(.white, for: .normal)
+        testButton.layer.cornerRadius = 12
+        testButton.translatesAutoresizingMaskIntoConstraints = false
+        testButton.addTarget(self, action: #selector(handleTestButtonTapped), for: .touchUpInside)
+        contentView.addSubview(testButton)
+
+        // Loading indicator
+        loadingIndicator = UIActivityIndicatorView(style: .medium)
+        loadingIndicator.hidesWhenStopped = true
+        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(loadingIndicator)
+
+        // Status label
+        statusLabel = UILabel()
+        statusLabel.font = UIFont.systemFont(ofSize: 14)
+        statusLabel.textColor = .secondaryLabel
+        statusLabel.textAlignment = .center
+        statusLabel.numberOfLines = 0
+        statusLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(statusLabel)
+
+        // Security note
+        let securityLabel = UILabel()
+        securityLabel.text = "🔒 Your API key is securely stored in the iOS Keychain and shared only with the keyboard extension."
+        securityLabel.font = UIFont.systemFont(ofSize: 12)
+        securityLabel.textColor = .systemGreen
+        securityLabel.textAlignment = .center
+        securityLabel.numberOfLines = 0
+        securityLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(securityLabel)
 
         // Instructions for keyboard activation
         let activationLabel = UILabel()
-        activationLabel.text = "Pour activer le clavier:\n1. Allez dans Réglages > Général > Clavier > Claviers\n2. Appuyez sur 'Ajouter un clavier...'\n3. Sélectionnez 'KeyboardExtension'"
+        activationLabel.text = "📱 To use the keyboard:\n1. Settings > General > Keyboard > Keyboards\n2. Tap 'Add New Keyboard...'\n3. Select 'KeyboardExtension'\n4. Enable 'Allow Full Access' for AI features"
         activationLabel.font = UIFont.systemFont(ofSize: 12)
         activationLabel.textColor = .secondaryLabel
-        activationLabel.textAlignment = .center
+        activationLabel.textAlignment = .left
         activationLabel.numberOfLines = 0
         activationLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(activationLabel)
+        contentView.addSubview(activationLabel)
 
         // Constraints
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 40),
-            titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            instructionLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 40),
-            instructionLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            instructionLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
 
-            textField.topAnchor.constraint(equalTo: instructionLabel.bottomAnchor, constant: 20),
-            textField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
-            textField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -40),
-            textField.heightAnchor.constraint(equalToConstant: 50),
+            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 60),
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
 
-            previewLabel.topAnchor.constraint(equalTo: textField.bottomAnchor, constant: 10),
-            previewLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            previewLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            apiKeyHeader.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 40),
+            apiKeyHeader.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            apiKeyHeader.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
 
-            saveButton.topAnchor.constraint(equalTo: previewLabel.bottomAnchor, constant: 30),
-            saveButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            instructionLabel.topAnchor.constraint(equalTo: apiKeyHeader.bottomAnchor, constant: 10),
+            instructionLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            instructionLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+
+            apiKeyTextField.topAnchor.constraint(equalTo: instructionLabel.bottomAnchor, constant: 20),
+            apiKeyTextField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            apiKeyTextField.trailingAnchor.constraint(equalTo: toggleButton.leadingAnchor, constant: -10),
+            apiKeyTextField.heightAnchor.constraint(equalToConstant: 44),
+
+            toggleButton.centerYAnchor.constraint(equalTo: apiKeyTextField.centerYAnchor),
+            toggleButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            toggleButton.widthAnchor.constraint(equalToConstant: 44),
+
+            saveButton.topAnchor.constraint(equalTo: apiKeyTextField.bottomAnchor, constant: 20),
+            saveButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             saveButton.widthAnchor.constraint(equalToConstant: 200),
             saveButton.heightAnchor.constraint(equalToConstant: 50),
 
-            activationLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            activationLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            activationLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+            testButton.topAnchor.constraint(equalTo: saveButton.bottomAnchor, constant: 15),
+            testButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            testButton.widthAnchor.constraint(equalToConstant: 200),
+            testButton.heightAnchor.constraint(equalToConstant: 50),
+
+            loadingIndicator.topAnchor.constraint(equalTo: testButton.bottomAnchor, constant: 15),
+            loadingIndicator.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+
+            statusLabel.topAnchor.constraint(equalTo: loadingIndicator.bottomAnchor, constant: 10),
+            statusLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            statusLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+
+            securityLabel.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 20),
+            securityLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            securityLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+
+            activationLabel.topAnchor.constraint(equalTo: securityLabel.bottomAnchor, constant: 30),
+            activationLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            activationLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            activationLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -40)
         ])
 
-        // Add text field delegate to update preview
-        textField.addTarget(self, action: #selector(textFieldDidChange), for: .editingChanged)
+        // Keyboard notifications
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
+
+        // Tap to dismiss keyboard
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleDismissKeyboard))
+        view.addGestureRecognizer(tapGesture)
     }
 
-    @objc private func textFieldDidChange() {
-        let text = textField.text?.isEmpty == false ? textField.text! : "Bonjour"
-        previewLabel.text = "Aperçu: \(text)"
+    @objc private func handleToggleVisibility() {
+        apiKeyTextField.isSecureTextEntry.toggle()
     }
 
-    private func loadCurrentButtonText() {
-        let currentText = KeyboardSettings.shared.customButtonText
-        textField.text = currentText
-        previewLabel.text = "Aperçu: \(currentText)"
+    @objc private func handleDismissKeyboard() {
+        view.endEditing(true)
+    }
+
+    @objc private func keyboardWillShow(notification: NSNotification) {
+        guard let userInfo = notification.userInfo,
+              let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+
+        let contentInsets = UIEdgeInsets(top: 0, left: 0, bottom: keyboardFrame.height, right: 0)
+        if let scrollView = view.subviews.first as? UIScrollView {
+            scrollView.contentInset = contentInsets
+            scrollView.scrollIndicatorInsets = contentInsets
+        }
+    }
+
+    @objc private func keyboardWillHide(notification: NSNotification) {
+        if let scrollView = view.subviews.first as? UIScrollView {
+            scrollView.contentInset = .zero
+            scrollView.scrollIndicatorInsets = .zero
+        }
+    }
+
+    private func loadCurrentAPIKey() {
+        if let key = KeychainHelper.shared.getAPIKey(), !key.isEmpty {
+            apiKeyTextField.text = key
+            statusLabel.text = "✓ API key loaded from secure storage"
+            statusLabel.textColor = .systemGreen
+        }
     }
 
     @objc private func handleSaveButtonTapped() {
-        let newText = textField.text?.isEmpty == false ? textField.text! : "Bonjour"
+        guard let apiKey = apiKeyTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines), !apiKey.isEmpty else {
+            showStatus("Please enter an API key", isError: true)
+            return
+        }
 
-        KeyboardSettings.shared.customButtonText = newText
+        if KeychainHelper.shared.saveAPIKey(apiKey) {
+            showStatus("✓ API key saved securely!", isError: false)
 
-        // Show success feedback
-        let alert = UIAlertController(
-            title: "Enregistré!",
-            message: "Le texte du bouton a été mis à jour. Changez de clavier pour voir les modifications.",
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+            // Animate button
+            UIView.animate(withDuration: 0.1, animations: {
+                self.saveButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+            }) { _ in
+                UIView.animate(withDuration: 0.1) {
+                    self.saveButton.transform = .identity
+                }
+            }
+        } else {
+            showStatus("Failed to save API key", isError: true)
+        }
+    }
 
-        // Animate button
-        UIView.animate(withDuration: 0.1, animations: {
-            self.saveButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
-        }) { _ in
-            UIView.animate(withDuration: 0.1) {
-                self.saveButton.transform = .identity
+    @objc private func handleTestButtonTapped() {
+        view.endEditing(true)
+
+        guard let apiKey = KeychainHelper.shared.getAPIKey(), !apiKey.isEmpty else {
+            showStatus("Please save an API key first", isError: true)
+            return
+        }
+
+        setLoading(true)
+        statusLabel.text = "Testing API connection..."
+
+        let testText = "this is test message for api"
+
+        OpenAIService.shared.improveText(testText) { [weak self] result in
+            DispatchQueue.main.async {
+                self?.setLoading(false)
+
+                switch result {
+                case .success(let improvedText):
+                    self?.showStatus("✓ API key is working!\n\nTest: '\(testText)'\n→ '\(improvedText)'", isError: false)
+
+                case .failure(let error):
+                    self?.showStatus("✗ API Error: \(error.localizedDescription)", isError: true)
+                }
             }
         }
+    }
+
+    private func setLoading(_ loading: Bool) {
+        if loading {
+            loadingIndicator.startAnimating()
+            testButton.isEnabled = false
+            saveButton.isEnabled = false
+        } else {
+            loadingIndicator.stopAnimating()
+            testButton.isEnabled = true
+            saveButton.isEnabled = true
+        }
+    }
+
+    private func showStatus(_ message: String, isError: Bool) {
+        statusLabel.text = message
+        statusLabel.textColor = isError ? .systemRed : .systemGreen
+
+        if isError {
+            // Haptic feedback
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.error)
+        }
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
 }
