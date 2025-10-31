@@ -37,9 +37,10 @@ KeyboardAi est un clavier iOS qui corrige et reformule votre texte pour le rendr
 
 ## Fonctionnalités
 
-- Amélioration en un tap: bouton « ✨ Improve Writing »
-- Aperçu en direct: affichage du texte amélioré, mise à jour en streaming
-- Actions rapides: Replace, Insert, Copy, Refresh, Back
+- Amélioration en un tap: « ✨ Improve Writing »
+- Raccourcir le texte: « Make Shorter » (concis, sans perdre le sens)
+- Allonger le texte: « Make Longer » (développe, ajoute des transitions)
+- Aperçu en direct: streaming du résultat, puis Replace / Insert / Copy
 - Lecture « best‑effort » du contexte via `textDocumentProxy`
 - Design clair, indicateurs d’état, retours haptiques
 
@@ -79,14 +80,23 @@ Dans l’app `KeyboardAi`:
 
 1. Placez le curseur dans n’importe quelle app (Notes, Mail, Messages…)
 2. Passez au clavier « KeyboardExtension » (globe 🌐)
-3. Tapez votre texte puis appuyez sur « ✨ Improve Writing »
-4. Prévisualisez le résultat et choisissez Replace, Insert ou Copy
+3. Écrivez votre texte puis choisissez l’action:
+   - ✨ Improve Writing → corrige et améliore
+   - Make Shorter → rend plus concis
+   - Make Longer → développe le propos
+4. Prévisualisez en direct puis choisissez Replace, Insert ou Copy
 
-Exemple:
+Exemples rapides:
 
 ```
-Entrée  : i want go to store today maybe buy some thing
-Sortie  : I want to go to the store today to maybe buy something.
+Improve   : i want go to store today maybe buy some thing
+→ I want to go to the store today to maybe buy something.
+
+Shorten   : In light of the fact that we are running behind schedule
+→ We’re running behind schedule.
+
+Lengthen  : The meeting was productive
+→ The meeting was productive, covering our key milestones and clarifying next steps with clear owners and deadlines.
 ```
 
 ## Architecture
@@ -97,10 +107,14 @@ Sortie  : I want to go to the store today to maybe buy something.
 KeyboardExtension/
  ├─ Views/
  │  ├─ KBColor.swift                 # Palette centralisée (tileBG, midGreyText…)
- │  ├─ KeyboardHomeStyling.swift     # Style de l'accueil (Improve + barre du bas)
- │  ├─ KeyboardControlsView.swift    # Conteneur accueil (Improve + status + BottomActionBar)
- │  ├─ BottomActionBarView.swift     # Barre [space | delete | return] (layout fill)
- │  └─ ImproveWritingView.swift      # Panneau d'aperçu IA (stream + Insert/Replace/Reload/Back)
+ │  ├─ KeyboardHomeStyling.swift     # Style de l'accueil (Improve + Shorten + Lengthen)
+ │  ├─ KeyboardControlsView.swift    # Accueil (boutons, status, barre du bas)
+ │  ├─ BottomActionBarView.swift     # Barre [space | delete | return]
+ │  └─ ImproveWritingView.swift      # Aperçu IA (stream + Insert/Replace/Copy/Refresh/Back)
+ ├─ Prompts/
+ │  ├─ ImprovePrompt.swift           # Prompt système pour l’amélioration
+ │  ├─ ShortenPrompt.swift           # Prompt système pour raccourcir
+ │  └─ LengthenPrompt.swift          # Prompt système pour allonger
  ├─ KeyboardViewController.swift     # Orchestration + câblage des actions
  ├─ TextProxyBestEffort.swift        # Lecture complète via proxy (balayage + probes)
  └─ OpenAIService.swift              # Streaming SSE (iOS 15+) + fallback
@@ -117,7 +131,8 @@ KeyboardAi/
 │
 └─ KeyboardExtension/              # Extension de clavier
    ├─ KeyboardViewController.swift # Orchestration UI + logique
-   ├─ Views/…                      # Vues et style extraits (voir ci‑dessus)
+   ├─ Views/…                      # Vues et style (voir ci‑dessus)
+   ├─ Prompts/…                    # Prompts système (Improve/Shorten/Lengthen)
    ├─ TextProxyBestEffort.swift    # Lecture « tout le texte accessible »
    └─ OpenAIService.swift          # Extension: requêtes streaming (iOS 15+)
 ```
@@ -127,8 +142,9 @@ KeyboardAi/
 - Modèle OpenAI: `gpt-4o-mini` (rapide/économique), `temperature = 0.3`
 - Streaming SSE côté extension (fallback non‑streaming pour iOS < 15)
 - Budget large d’entrée (≈ 10 000 tokens, ≈ 40 000 caractères)
-- « Best‑effort select all » pour lire tout le contexte accessible sans modifier le texte
-- Insertion remplaçant ou ajoutant le texte amélioré via `textDocumentProxy`
+- « Best‑effort select all »: lecture de tout le contexte accessible sans altérer le document
+- OpenAIService avec `PromptKind` (`improve|shorten|lengthen`) et prompts modulaires
+- Insertion Replace/Insert via `textDocumentProxy`; Copy et Refresh côté aperçu
 
 ### Limitations iOS à connaître
 
