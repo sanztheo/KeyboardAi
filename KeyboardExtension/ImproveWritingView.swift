@@ -4,14 +4,16 @@ final class ImproveWritingView: UIView {
     let textView: UITextView = {
         let textView = UITextView()
         textView.font = UIFont.systemFont(ofSize: 16)
-        textView.backgroundColor = .clear // no background block
-        textView.layer.cornerRadius = 0   // no border / rounded box
+        textView.backgroundColor = .clear // transparent
+        textView.layer.cornerRadius = 0
         textView.layer.borderWidth = 0
         textView.layer.borderColor = UIColor.clear.cgColor
         textView.isOpaque = false
         textView.isEditable = false
         textView.isScrollEnabled = true
-        textView.textContainerInset = UIEdgeInsets(top: 6, left: 2, bottom: 6, right: 2)
+        // Aligner le texte avec le titre (même padding à gauche/droite via contraintes)
+        textView.textContainerInset = UIEdgeInsets(top: 6, left: 0, bottom: 6, right: 0)
+        textView.textContainer.lineFragmentPadding = 0
         textView.translatesAutoresizingMaskIntoConstraints = false
         return textView
     }()
@@ -32,10 +34,10 @@ final class ImproveWritingView: UIView {
     let replaceButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Replace", for: .normal)
-        button.backgroundColor = UIColor.systemGreen
-        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = .white
+        button.setTitleColor(.label, for: .normal)
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
-        button.layer.cornerRadius = 10
+        button.layer.cornerRadius = 12
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -43,10 +45,42 @@ final class ImproveWritingView: UIView {
     let insertButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Insert", for: .normal)
-        button.backgroundColor = UIColor.systemBlue
-        button.setTitleColor(.white, for: .normal)
+        // Insert style: BG #D5D6D8, Text #6C6C6C, no border
+        let newBG = UIColor(
+            red: CGFloat(0xD5) / 255.0,
+            green: CGFloat(0xD6) / 255.0,
+            blue: CGFloat(0xD8) / 255.0,
+            alpha: 1.0
+        ) // #D5D6D8
+        let newFG = UIColor(
+            red: CGFloat(0x6C) / 255.0,
+            green: CGFloat(0x6C) / 255.0,
+            blue: CGFloat(0x6C) / 255.0,
+            alpha: 1.0
+        ) // #6C6C6C
+        button.backgroundColor = newBG
+        button.setTitleColor(newFG, for: .normal)
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
-        button.layer.cornerRadius = 10
+        button.layer.cornerRadius = 12
+        button.layer.borderWidth = 0
+        button.layer.borderColor = UIColor.clear.cgColor
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    let copyButton: UIButton = {
+        let button = UIButton(type: .system)
+        if let img = UIImage(systemName: "doc.on.doc") {
+            button.setImage(img, for: .normal)
+        } else {
+            button.setTitle("📋", for: .normal)
+        }
+        // Copy style like Insert: BG #D5D6D8, icon #6C6C6C
+        let bg = UIColor(red: 0xD5/255.0, green: 0xD6/255.0, blue: 0xD8/255.0, alpha: 1.0)
+        let fg = UIColor(red: 0x6C/255.0, green: 0x6C/255.0, blue: 0x6C/255.0, alpha: 1.0)
+        button.backgroundColor = bg
+        button.tintColor = fg
+        button.layer.cornerRadius = 12
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -82,23 +116,37 @@ final class ImproveWritingView: UIView {
 
         addSubview(header)
         header.addSubview(titleLabel)
+        header.addSubview(refreshButton)
         addSubview(textView)
 
-        // Bottom action bar: Replace + Insert (left), Reload (trailing standalone)
-        let buttonStack = UIStackView(arrangedSubviews: [replaceButton, insertButton])
-        buttonStack.axis = .horizontal
-        buttonStack.distribution = .fillEqually
-        buttonStack.spacing = 8
-        buttonStack.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(buttonStack)
-        addSubview(refreshButton)
+        // Bottom action bar: [Copy | Insert] ... [Replace]  (Reload near title)
+        let leftStack = UIStackView(arrangedSubviews: [copyButton, insertButton])
+        leftStack.axis = .horizontal
+        leftStack.distribution = .fill
+        leftStack.alignment = .fill
+        leftStack.spacing = 8 // écart de 8 pt entre Copy et Insert
+        leftStack.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(leftStack)
+        addSubview(replaceButton)
 
         // Style buttons (pills)
-        replaceButton.layer.cornerRadius = 12
-        insertButton.layer.cornerRadius = 12
-        replaceButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
-        insertButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
-        refreshButton.tintColor = .label
+        replaceButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
+        insertButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
+        refreshButton.tintColor = UIColor(
+            red: CGFloat(0xC8) / 255.0,
+            green: CGFloat(0xC9) / 255.0,
+            blue: CGFloat(0xCD) / 255.0,
+            alpha: 1.0
+        ) // #C8C9CD
+
+        // Priorités pour que Insert s'étire et Replace garde sa taille
+        copyButton.setContentHuggingPriority(.required, for: .horizontal)
+        copyButton.setContentCompressionResistancePriority(.required, for: .horizontal)
+        insertButton.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        insertButton.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        // Laisser Replace s'élargir pour égaler Insert
+        replaceButton.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        replaceButton.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
         NSLayoutConstraint.activate([
             header.topAnchor.constraint(equalTo: topAnchor, constant: 10),
@@ -108,21 +156,35 @@ final class ImproveWritingView: UIView {
 
             titleLabel.leadingAnchor.constraint(equalTo: header.leadingAnchor),
             titleLabel.centerYAnchor.constraint(equalTo: header.centerYAnchor),
+            refreshButton.trailingAnchor.constraint(equalTo: header.trailingAnchor),
+            refreshButton.centerYAnchor.constraint(equalTo: header.centerYAnchor),
+            refreshButton.widthAnchor.constraint(equalToConstant: 24),
+            refreshButton.heightAnchor.constraint(equalToConstant: 24),
 
             textView.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 10),
             textView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             textView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-            buttonStack.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 10),
-            buttonStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
-            buttonStack.trailingAnchor.constraint(lessThanOrEqualTo: refreshButton.leadingAnchor, constant: -12),
-            buttonStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
-            buttonStack.heightAnchor.constraint(equalToConstant: 44),
 
-            refreshButton.centerYAnchor.constraint(equalTo: buttonStack.centerYAnchor),
-            refreshButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
-            refreshButton.widthAnchor.constraint(equalToConstant: 36),
-            refreshButton.heightAnchor.constraint(equalToConstant: 36)
+            leftStack.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 10),
+            leftStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
+            leftStack.trailingAnchor.constraint(equalTo: replaceButton.leadingAnchor, constant: -8),
+            leftStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
+            leftStack.heightAnchor.constraint(equalToConstant: 44),
+
+            copyButton.widthAnchor.constraint(equalToConstant: 44),
+            copyButton.heightAnchor.constraint(equalToConstant: 44),
+
+            insertButton.heightAnchor.constraint(equalToConstant: 44),
+
+            replaceButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
+            replaceButton.bottomAnchor.constraint(equalTo: leftStack.bottomAnchor),
+            replaceButton.heightAnchor.constraint(equalToConstant: 44)
         ])
+
+        // Replace a la même largeur que Insert
+        let equalWidth = replaceButton.widthAnchor.constraint(equalTo: insertButton.widthAnchor)
+        equalWidth.priority = .required
+        equalWidth.isActive = true
 
         let minTextHeight = textView.heightAnchor.constraint(greaterThanOrEqualToConstant: 90)
         minTextHeight.priority = .defaultHigh

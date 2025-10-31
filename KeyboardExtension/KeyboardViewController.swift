@@ -67,6 +67,7 @@ class KeyboardViewController: UIInputViewController {
         improveWritingView.replaceButton.addTarget(self, action: #selector(handleReplaceTapped), for: .touchUpInside)
         improveWritingView.insertButton.addTarget(self, action: #selector(handleInsertTapped), for: .touchUpInside)
         improveWritingView.refreshButton.addTarget(self, action: #selector(handleRefreshTapped), for: .touchUpInside)
+        improveWritingView.copyButton.addTarget(self, action: #selector(handleCopyTapped), for: .touchUpInside)
     }
 
     @objc private func handleImproveButtonTapped() {
@@ -327,14 +328,20 @@ class KeyboardViewController: UIInputViewController {
         lastCaptureWasTruncated = false
     }
 
+    @objc private func handleCopyTapped() {
+        #if canImport(UIKit)
+        UIPasteboard.general.string = improvedText
+        #endif
+        showStatus("✓ Copied", isError: false)
+    }
+
     @objc private func handleRefreshTapped() {
         guard !originalText.isEmpty else { return }
-        // Haptique + petite rotation du bouton
+        // Haptique sur tap
         let impact = UIImpactFeedbackGenerator(style: .medium)
         impact.prepare()
         impact.impactOccurred(intensity: 0.9)
 
-        improveWritingView.startRefreshAnimating()
         improveWritingView.clearText()
         improvedText = ""
         OpenAIService.shared.improveText(originalText, onStream: { [weak self] streamedText in
@@ -344,7 +351,7 @@ class KeyboardViewController: UIInputViewController {
             }
         }, completion: { [weak self] result in
             DispatchQueue.main.async {
-                self?.improveWritingView.stopRefreshAnimating()
+                // plus d'animation de rotation
                 if case .failure(let error) = result {
                     let notif = UINotificationFeedbackGenerator()
                     notif.notificationOccurred(.error)
