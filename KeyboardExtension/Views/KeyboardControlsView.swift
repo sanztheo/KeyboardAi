@@ -89,18 +89,18 @@ final class KeyboardControlsView: UIView {
         content.addSubview(topRow)
         content.addSubview(bottomRow)
 
-        // Add tiles into columns (width fixed for predictable scroll)
-        improveButton.widthAnchor.constraint(equalToConstant: 220).isActive = true
-        improveButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        shortenButton.widthAnchor.constraint(equalToConstant: 220).isActive = true
-        shortenButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        lengthenButton.widthAnchor.constraint(equalToConstant: 220).isActive = true
-        lengthenButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
-
+        // Add tiles into columns first
         topRow.addArrangedSubview(improveButton)
         topRow.addArrangedSubview(lengthenButton)
         bottomRow.addArrangedSubview(shortenButton)
         bottomRow.addArrangedSubview(UIView()) // placeholder to keep grid form
+
+        // Then set size constraints (now they share a common ancestor)
+        let tileWidthMultiplier: CGFloat = 0.52 // ~52% of visible width to show 2 cols + peek
+        [improveButton, shortenButton, lengthenButton].forEach { btn in
+            btn.widthAnchor.constraint(equalTo: tileScrollView.frameLayoutGuide.widthAnchor, multiplier: tileWidthMultiplier).isActive = true
+            btn.heightAnchor.constraint(equalToConstant: 69).isActive = true
+        }
 
         addSubview(loadingIndicator)
         addSubview(statusLabel)
@@ -112,7 +112,7 @@ final class KeyboardControlsView: UIView {
             tileScrollView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             tileScrollView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
             tileScrollView.topAnchor.constraint(equalTo: topAnchor, constant: 15),
-            tileScrollView.heightAnchor.constraint(equalToConstant: 108),
+            tileScrollView.heightAnchor.constraint(equalToConstant: 150),
 
             content.leadingAnchor.constraint(equalTo: tileScrollView.contentLayoutGuide.leadingAnchor),
             content.trailingAnchor.constraint(equalTo: tileScrollView.contentLayoutGuide.trailingAnchor),
@@ -123,12 +123,12 @@ final class KeyboardControlsView: UIView {
             topRow.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             topRow.trailingAnchor.constraint(equalTo: content.trailingAnchor),
             topRow.topAnchor.constraint(equalTo: content.topAnchor),
-            topRow.heightAnchor.constraint(equalToConstant: 50),
+            topRow.heightAnchor.constraint(equalToConstant: 69),
 
             bottomRow.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             bottomRow.trailingAnchor.constraint(equalTo: content.trailingAnchor),
             bottomRow.topAnchor.constraint(equalTo: topRow.bottomAnchor, constant: 8),
-            bottomRow.heightAnchor.constraint(equalToConstant: 50),
+            bottomRow.heightAnchor.constraint(equalToConstant: 69),
             bottomRow.bottomAnchor.constraint(equalTo: content.bottomAnchor),
 
             loadingIndicator.centerXAnchor.constraint(equalTo: improveButton.centerXAnchor),
