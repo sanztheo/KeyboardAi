@@ -1,62 +1,77 @@
 import UIKit
+import SwiftUI
+import KeyboardKit
+import Combine
 
 final class AskAIView: UIView {
 
+    // MARK: - KeyboardKit State
+    @MainActor
+    class KeyboardState: ObservableObject {
+        @Published var textInput: String = ""
+        let keyboardContext = KeyboardContext()
+        let autocompleteContext = AutocompleteContext()
+        let calloutContext = CalloutContext()
+        let dictationContext = DictationContext()
+        let feedbackContext = FeedbackContext()
+        let themeContext = KeyboardThemeContext()
+        let fontContext = FontContext()
+    }
+
     // MARK: - UI Components
 
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Ask AI"
-        label.font = UIFont.boldSystemFont(ofSize: 17)
-        label.textAlignment = .left
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
+    private let headerContainer: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .clear
+        return view
     }()
 
     let backButton: UIButton = {
         let button = UIButton(type: .system)
         if let img = UIImage(systemName: "chevron.left") {
             button.setImage(img, for: .normal)
-        } else {
-            button.setTitle("◀", for: .normal)
         }
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.tintColor = UIColor(white: 0.25, alpha: 1)
-        button.backgroundColor = UIColor(red: 0xD5/255.0, green: 0xD6/255.0, blue: 0xD8/255.0, alpha: 1.0)
-        button.layer.cornerRadius = 14
-        button.contentEdgeInsets = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
+        button.tintColor = .label
         return button
     }()
 
-    let questionTextField: UITextField = {
-        let textField = UITextField()
-        textField.placeholder = "Ask me anything..."
-        textField.borderStyle = .none
-        textField.font = UIFont.systemFont(ofSize: 16)
-        textField.backgroundColor = UIColor(red: 0xD5/255.0, green: 0xD6/255.0, blue: 0xD8/255.0, alpha: 1.0)
-        textField.layer.cornerRadius = 12
-        textField.translatesAutoresizingMaskIntoConstraints = false
-
-        // Padding inside text field
-        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 12, height: 44))
-        textField.leftView = paddingView
-        textField.leftViewMode = .always
-        textField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 12, height: 44))
-        textField.rightViewMode = .always
-
-        return textField
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "✨ Ask AI"
+        label.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }()
 
     let askButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Ask", for: .normal)
-        button.backgroundColor = .white
-        button.setTitleColor(.label, for: .normal)
-        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
-        button.layer.cornerRadius = 12
+        button.setTitleColor(.systemBlue, for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.contentEdgeInsets = UIEdgeInsets(top: 10, left: 20, bottom: 10, right: 20)
         return button
+    }()
+
+    let questionTextField: UITextField = {
+        let textField = UITextField()
+        textField.placeholder = "Ask AI Anything..."
+        textField.borderStyle = .none
+        textField.font = UIFont.systemFont(ofSize: 15)
+        textField.textColor = .label
+        textField.backgroundColor = .clear
+        textField.translatesAutoresizingMaskIntoConstraints = false
+
+        // Padding inside text field
+        let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 44))
+        textField.leftView = paddingView
+        textField.leftViewMode = .always
+        textField.rightView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: 44))
+        textField.rightViewMode = .always
+
+        return textField
     }()
 
     private let simpleKeyboard: SimpleKeyboardView = {
@@ -81,71 +96,55 @@ final class AskAIView: UIView {
 
     private func setup() {
         backgroundColor = .clear
-        isOpaque = false
 
         // Disable system keyboard for text field
         questionTextField.inputView = UIView()
 
+        // Add header container
+        addSubview(headerContainer)
+        headerContainer.addSubview(backButton)
+        headerContainer.addSubview(titleLabel)
+        headerContainer.addSubview(askButton)
+
+        // Add text field
+        addSubview(questionTextField)
+
+        // Set keyboard delegate
         simpleKeyboard.delegate = self
-
-        let header = UIView()
-        header.translatesAutoresizingMaskIntoConstraints = false
-        header.backgroundColor = .clear
-        header.isOpaque = false
-
-        addSubview(header)
-        header.addSubview(backButton)
-        header.addSubview(titleLabel)
-
-        // Input section
-        let inputContainer = UIView()
-        inputContainer.translatesAutoresizingMaskIntoConstraints = false
-        inputContainer.backgroundColor = .clear
-        addSubview(inputContainer)
-
-        inputContainer.addSubview(questionTextField)
-        inputContainer.addSubview(askButton)
 
         // Add simple keyboard
         addSubview(simpleKeyboard)
 
         NSLayoutConstraint.activate([
-            // Header
-            header.topAnchor.constraint(equalTo: topAnchor, constant: 10),
-            header.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
-            header.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-            header.heightAnchor.constraint(equalToConstant: 32),
+            // Header container - like iOS native header
+            headerContainer.topAnchor.constraint(equalTo: topAnchor),
+            headerContainer.leadingAnchor.constraint(equalTo: leadingAnchor),
+            headerContainer.trailingAnchor.constraint(equalTo: trailingAnchor),
+            headerContainer.heightAnchor.constraint(equalToConstant: 44),
 
-            backButton.leadingAnchor.constraint(equalTo: header.leadingAnchor),
-            backButton.centerYAnchor.constraint(equalTo: header.centerYAnchor),
-            backButton.heightAnchor.constraint(equalToConstant: 28),
-            backButton.widthAnchor.constraint(equalTo: backButton.heightAnchor),
+            // Back button
+            backButton.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 8),
+            backButton.centerYAnchor.constraint(equalTo: headerContainer.centerYAnchor),
 
-            titleLabel.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 8),
-            titleLabel.centerYAnchor.constraint(equalTo: header.centerYAnchor),
+            // Title - centered
+            titleLabel.centerXAnchor.constraint(equalTo: headerContainer.centerXAnchor),
+            titleLabel.centerYAnchor.constraint(equalTo: headerContainer.centerYAnchor),
 
-            // Input container
-            inputContainer.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 10),
-            inputContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
-            inputContainer.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-            inputContainer.heightAnchor.constraint(equalToConstant: 44),
+            // Ask button
+            askButton.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -8),
+            askButton.centerYAnchor.constraint(equalTo: headerContainer.centerYAnchor),
 
-            questionTextField.leadingAnchor.constraint(equalTo: inputContainer.leadingAnchor),
-            questionTextField.trailingAnchor.constraint(equalTo: askButton.leadingAnchor, constant: -8),
-            questionTextField.topAnchor.constraint(equalTo: inputContainer.topAnchor),
-            questionTextField.bottomAnchor.constraint(equalTo: inputContainer.bottomAnchor),
+            // Text field - below header
+            questionTextField.topAnchor.constraint(equalTo: headerContainer.bottomAnchor, constant: 8),
+            questionTextField.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            questionTextField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
+            questionTextField.heightAnchor.constraint(equalToConstant: 36),
 
-            askButton.trailingAnchor.constraint(equalTo: inputContainer.trailingAnchor),
-            askButton.topAnchor.constraint(equalTo: inputContainer.topAnchor),
-            askButton.bottomAnchor.constraint(equalTo: inputContainer.bottomAnchor),
-            askButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 80),
-
-            // Simple keyboard
-            simpleKeyboard.topAnchor.constraint(equalTo: inputContainer.bottomAnchor, constant: 15),
+            // Simple keyboard - takes rest of space
+            simpleKeyboard.topAnchor.constraint(equalTo: questionTextField.bottomAnchor, constant: 8),
             simpleKeyboard.leadingAnchor.constraint(equalTo: leadingAnchor),
             simpleKeyboard.trailingAnchor.constraint(equalTo: trailingAnchor),
-            simpleKeyboard.bottomAnchor.constraint(equalTo: bottomAnchor),
-            simpleKeyboard.heightAnchor.constraint(equalToConstant: 200)
+            simpleKeyboard.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
 
@@ -177,7 +176,6 @@ extension AskAIView: SimpleKeyboardViewDelegate {
     }
 
     func simpleKeyboardDidTapReturn(_ keyboard: SimpleKeyboardView) {
-        // Could trigger Ask button here if needed
         questionTextField.resignFirstResponder()
     }
 }
