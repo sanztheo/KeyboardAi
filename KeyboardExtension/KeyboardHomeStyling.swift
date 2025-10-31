@@ -25,6 +25,10 @@ struct KeyboardHomeStyling {
             config.background.strokeColor = .clear
             config.background.strokeWidth = 0
             config.background.backgroundColorTransformer = UIConfigurationColorTransformer { _ in KBColor.tileBG }
+            // Bold title
+            var attrs = AttributeContainer()
+            attrs.font = .boldSystemFont(ofSize: 16)
+            config.attributedTitle = AttributedString("Improve Writing", attributes: attrs)
             b.configuration = config
             b.setTitle("Improve Writing", for: .normal)
             // Also explicitly set title color for consistency

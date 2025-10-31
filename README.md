@@ -2,9 +2,9 @@
 
 <img src="img/banner.png" alt="KeyboardAi banner" width="100%" />
 
-# KeyboardAi — Clavier iOS qui améliore votre écriture avec l’IA
+# KeyboardAi - Clavier iOS qui améliore votre écriture avec l’IA
 
-Améliorez grammaire, style et clarté en un tap — directement depuis un clavier iOS. Propulsé par OpenAI `gpt-4o-mini`, streaming en temps réel et respect de la confidentialité.
+Améliorez grammaire, style et clarté en un tap - directement depuis un clavier iOS. Propulsé par OpenAI `gpt-4o-mini`, streaming en temps réel et respect de la confidentialité.
 
 <br/>
 
@@ -31,7 +31,7 @@ Améliorez grammaire, style et clarté en un tap — directement depuis un clavi
 
 ## Présentation
 
-KeyboardAi est un clavier iOS qui corrige et reformule votre texte pour le rendre plus clair, correct et naturel — sans quitter votre app. L’extension lit le texte accessible autour du curseur, envoie la demande à l’API OpenAI et affiche un aperçu que vous pouvez insérer ou remplacer.
+KeyboardAi est un clavier iOS qui corrige et reformule votre texte pour le rendre plus clair, correct et naturel - sans quitter votre app. L’extension lit le texte accessible autour du curseur, envoie la demande à l’API OpenAI et affiche un aperçu que vous pouvez insérer ou remplacer.
 
 > Recommandé: iOS 15+ (streaming). iOS < 15 pris en charge en mode non‑streaming.
 
