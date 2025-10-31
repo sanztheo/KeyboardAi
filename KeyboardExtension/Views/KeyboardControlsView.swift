@@ -195,4 +195,14 @@ final class KeyboardControlsView: UIView {
 
     // Backwards compatibility helper
     func setImproving(_ loading: Bool) { setTileLoading(.improve, loading: loading) }
+
+    // MARK: - Feedback helpers
+    func shake(tile: Tile) {
+        let target = button(for: tile)
+        let shake = CAKeyframeAnimation(keyPath: "transform.translation.x")
+        shake.timingFunction = CAMediaTimingFunction(name: .linear)
+        shake.values = [-10, 10, -8, 8, -5, 5, 0]
+        shake.duration = 0.6
+        target.layer.add(shake, forKey: "shake")
+    }
 }

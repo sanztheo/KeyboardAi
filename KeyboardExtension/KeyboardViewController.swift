@@ -22,6 +22,16 @@ class KeyboardViewController: UIInputViewController {
 #endif
     }
 
+    // MARK: - Haptics
+    private func hapticError() {
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.error)
+    }
+    private func hapticSelection() {
+        let gen = UISelectionFeedbackGenerator()
+        gen.selectionChanged()
+    }
+
     override func updateViewConstraints() {
         super.updateViewConstraints()
     }
@@ -128,8 +138,23 @@ class KeyboardViewController: UIInputViewController {
                 DispatchQueue.main.async {
                     guard !trimmed.isEmpty else {
                         self.lastCaptureWasTruncated = false
-                        self.setLoading(false)
+                        // Stop spinner on the correct tile and give feedback
+                        switch kind {
+                        case .improve: self.controlsView.setTileLoading(.improve, loading: false)
+                        case .shorten: self.controlsView.setTileLoading(.shorten, loading: false)
+                        case .lengthen: self.controlsView.setTileLoading(.lengthen, loading: false)
+                        }
+                        self.improveWritingView.refreshButton.isEnabled = true
+                        self.hapticError()
                         self.showStatus("No text to improve", isError: true)
+                        // Optional: small shake on the tile that failed
+                        #if canImport(UIKit)
+                        switch kind {
+                        case .improve: self.controlsView.shake(tile: .improve)
+                        case .shorten: self.controlsView.shake(tile: .shorten)
+                        case .lengthen: self.controlsView.shake(tile: .lengthen)
+                        }
+                        #endif
                         return
                     }
 
@@ -172,6 +197,7 @@ class KeyboardViewController: UIInputViewController {
                                     case .lengthen: self.controlsView.setTileLoading(.lengthen, loading: false)
                                     }
                                     self.improveWritingView.refreshButton.isEnabled = true
+                                    self.hapticError()
                                 }
                             }
                         }
@@ -437,14 +463,6 @@ class KeyboardViewController: UIInputViewController {
         controlsView.statusLabel.isHidden = false
         controlsView.statusLabel.text = message
         controlsView.statusLabel.textColor = isError ? .systemRed : .systemGreen
-
-        if isError {
-            let shake = CAKeyframeAnimation(keyPath: "transform.translation.x")
-            shake.timingFunction = CAMediaTimingFunction(name: .linear)
-            shake.values = [-10, 10, -8, 8, -5, 5, 0]
-            shake.duration = 0.6
-            controlsView.improveButton.layer.add(shake, forKey: "shake")
-        }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
             self?.controlsView.statusLabel.text = ""
