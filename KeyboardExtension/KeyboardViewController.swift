@@ -9,14 +9,21 @@ import UIKit
 
 class KeyboardViewController: UIInputViewController {
 
+    // MARK: - Pages
     private let controlsView = KeyboardControlsView()
     private let improveWritingView = ImproveWritingView()
     private let askAIView = AskAIView()
 
+    private lazy var pageManager: PageManager = {
+        let manager = PageManager(homePage: controlsView, askAIPage: askAIView, responsePage: improveWritingView)
+        return manager
+    }()
+
+    // MARK: - State
     private var originalText: String = ""
     private var improvedText: String = ""
     private var lastCaptureWasTruncated: Bool = false
-    private var askAIResponse: String = ""
+    private var currentResponseType: ResponseType?
 
     private func debugLog(_ message: String) {
 #if DEBUG
@@ -41,70 +48,41 @@ class KeyboardViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        setupKeyboardUI()
-        setupImproveWritingView()
-        setupAskAIView()
-    }
-
-    private func setupKeyboardUI() {
-        // Use transparent background so the host app provides the backdrop
         view.backgroundColor = .clear
         view.isOpaque = false
         inputView?.backgroundColor = .clear
         inputView?.isOpaque = false
 
-        controlsView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(controlsView)
+        setupPages()
+        setupActions()
 
-        NSLayoutConstraint.activate([
-            controlsView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            controlsView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            controlsView.topAnchor.constraint(equalTo: view.topAnchor),
-            controlsView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
+        // Initialize page manager
+        pageManager.setup(in: view)
+    }
 
-        controlsView.improveButton.addTarget(self, action: #selector(handleImproveButtonTapped), for: .touchUpInside)
-        // Home styling and quick actions
+    private func setupPages() {
+        // Apply styling to home page
         KeyboardHomeStyling.apply(to: controlsView)
-        controlsView.deleteButton.addTarget(self, action: #selector(handleHomeDeleteTapped), for: .touchUpInside)
-        controlsView.returnButton.addTarget(self, action: #selector(handleHomeReturnTapped), for: .touchUpInside)
-        controlsView.spaceButton.addTarget(self, action: #selector(handleHomeSpaceTapped), for: .touchUpInside)
+    }
+
+    private func setupActions() {
+        // Home page actions
+        controlsView.improveButton.addTarget(self, action: #selector(handleImproveButtonTapped), for: .touchUpInside)
         controlsView.shortenButton.addTarget(self, action: #selector(handleShortenTapped), for: .touchUpInside)
         controlsView.lengthenButton.addTarget(self, action: #selector(handleLengthenTapped), for: .touchUpInside)
         controlsView.askAIButton.addTarget(self, action: #selector(handleAskAIButtonTapped), for: .touchUpInside)
-    }
+        controlsView.deleteButton.addTarget(self, action: #selector(handleHomeDeleteTapped), for: .touchUpInside)
+        controlsView.returnButton.addTarget(self, action: #selector(handleHomeReturnTapped), for: .touchUpInside)
+        controlsView.spaceButton.addTarget(self, action: #selector(handleHomeSpaceTapped), for: .touchUpInside)
 
-    private func setupImproveWritingView() {
-        improveWritingView.translatesAutoresizingMaskIntoConstraints = false
-        improveWritingView.isHidden = true
-        view.addSubview(improveWritingView)
-
-        NSLayoutConstraint.activate([
-            improveWritingView.topAnchor.constraint(equalTo: view.topAnchor),
-            improveWritingView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            improveWritingView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            improveWritingView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-
+        // Response page actions
         improveWritingView.replaceButton.addTarget(self, action: #selector(handleReplaceTapped), for: .touchUpInside)
         improveWritingView.insertButton.addTarget(self, action: #selector(handleInsertTapped), for: .touchUpInside)
         improveWritingView.refreshButton.addTarget(self, action: #selector(handleRefreshTapped), for: .touchUpInside)
         improveWritingView.copyButton.addTarget(self, action: #selector(handleCopyTapped), for: .touchUpInside)
         improveWritingView.backButton.addTarget(self, action: #selector(handleBackTapped), for: .touchUpInside)
-    }
 
-    private func setupAskAIView() {
-        askAIView.translatesAutoresizingMaskIntoConstraints = false
-        askAIView.isHidden = true
-        view.addSubview(askAIView)
-
-        NSLayoutConstraint.activate([
-            askAIView.topAnchor.constraint(equalTo: view.topAnchor),
-            askAIView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            askAIView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            askAIView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-
+        // Ask AI page actions
         askAIView.askButton.addTarget(self, action: #selector(handleAskQuestionTapped), for: .touchUpInside)
         askAIView.backButton.addTarget(self, action: #selector(handleAskAIBackTapped), for: .touchUpInside)
     }
@@ -127,13 +105,23 @@ class KeyboardViewController: UIInputViewController {
         let approxCharsPerToken = 4
         let inputCharBudget = targetTokenBudget * approxCharsPerToken
 
-        // 0) UI: démarrer le chargement sur la tuile concernée
+        // Determine response type
+        let responseType: ResponseType
         switch kind {
-        case .improve: controlsView.setTileLoading(.improve, loading: true)
-        case .shorten: controlsView.setTileLoading(.shorten, loading: true)
-        case .lengthen: controlsView.setTileLoading(.lengthen, loading: true)
-        case .askAI: break // askAI doesn't use this flow
+        case .improve:
+            responseType = .improve
+            controlsView.setTileLoading(.improve, loading: true)
+        case .shorten:
+            responseType = .shorten
+            controlsView.setTileLoading(.shorten, loading: true)
+        case .lengthen:
+            responseType = .lengthen
+            controlsView.setTileLoading(.lengthen, loading: true)
+        case .askAI:
+            responseType = .askAI
         }
+
+        currentResponseType = responseType
         improveWritingView.refreshButton.isEnabled = false
         controlsView.statusLabel.text = "Récupération du texte…"
 
@@ -182,16 +170,11 @@ class KeyboardViewController: UIInputViewController {
 
                     self.lastCaptureWasTruncated = truncated
                     self.originalText = capturedText
-                    let header: String
-                    switch kind {
-                    case .improve: header = "Improved Text"
-                    case .shorten: header = "Shortened Text"
-                    case .lengthen: header = "Lengthened Text"
-                    case .askAI: header = "AI Response"
-                    }
-                    self.improveWritingView.setHeaderTitle(header)
                     self.controlsView.statusLabel.text = "Improving your text..."
-                    self.showPreviewContainer()
+
+                    // Navigate to response page
+                    self.pageManager.showPage(.response(type: responseType))
+
                     // Arrêter l'état de chargement sur la tuile
                     switch kind {
                     case .improve: self.controlsView.setTileLoading(.improve, loading: false)
@@ -211,7 +194,7 @@ class KeyboardViewController: UIInputViewController {
                                 self?.improveWritingView.setText(improvedText)
                                 self?.debugLog("Improved text length=\(improvedText.count)")
                             case .failure(let error):
-                                self?.hidePreview()
+                                self?.pageManager.showPage(.home)
                                 self?.lastCaptureWasTruncated = false
                                 self?.showStatus("Error: \(error.localizedDescription)", isError: true)
                                 if let self = self {
@@ -388,20 +371,6 @@ class KeyboardViewController: UIInputViewController {
         }
     }
 
-    private func showPreviewContainer() {
-        controlsView.isHidden = true
-        controlsView.statusLabel.isHidden = true
-        controlsView.statusLabel.text = ""
-
-        improveWritingView.clearText()
-        improveWritingView.isHidden = false
-        improveWritingView.alpha = 0
-
-        UIView.animate(withDuration: 0.3) {
-            self.improveWritingView.alpha = 1
-        }
-    }
-
     @objc private func handleReplaceTapped() {
         let proxy = textDocumentProxy
 
@@ -411,7 +380,7 @@ class KeyboardViewController: UIInputViewController {
 
         proxy.insertText(improvedText)
 
-        hidePreview()
+        pageManager.showPage(.home)
         let message = lastCaptureWasTruncated ? "✓ Text improved! (first \(originalText.count) chars only)" : "✓ Text improved!"
         showStatus(message, isError: false)
         lastCaptureWasTruncated = false
@@ -420,7 +389,7 @@ class KeyboardViewController: UIInputViewController {
     @objc private func handleInsertTapped() {
         let proxy = textDocumentProxy
         proxy.insertText(improvedText)
-        hidePreview()
+        pageManager.showPage(.home)
         let message = lastCaptureWasTruncated ? "✓ Inserted (first \(originalText.count) chars only)" : "✓ Inserted"
         showStatus(message, isError: false)
         lastCaptureWasTruncated = false
@@ -453,7 +422,7 @@ class KeyboardViewController: UIInputViewController {
                 if case .failure(let error) = result {
                     let notif = UINotificationFeedbackGenerator()
                     notif.notificationOccurred(.error)
-                    self?.hidePreview()
+                    self?.pageManager.showPage(.home)
                     self?.showStatus("Error: \(error.localizedDescription)", isError: true)
                 } else {
                     let notif = UINotificationFeedbackGenerator()
@@ -463,19 +432,9 @@ class KeyboardViewController: UIInputViewController {
         })
     }
 
-    private func hidePreview() {
-        UIView.animate(withDuration: 0.3, animations: {
-            self.improveWritingView.alpha = 0
-        }) { _ in
-            self.improveWritingView.isHidden = true
-            self.controlsView.isHidden = false
-            self.controlsView.statusLabel.isHidden = false
-        }
-    }
-
     @objc private func handleBackTapped() {
         // Retour à l'écran principal du clavier
-        hidePreview()
+        pageManager.showPage(.home)
         showStatus("", isError: false)
     }
 
@@ -524,7 +483,7 @@ class KeyboardViewController: UIInputViewController {
 
     @objc private func handleAskAIButtonTapped() {
         hapticSelection()
-        showAskAIView()
+        pageManager.showPage(.askAIInput)
     }
 
     @objc private func handleAskQuestionTapped() {
@@ -537,16 +496,13 @@ class KeyboardViewController: UIInputViewController {
 
         hapticSelection()
 
-        // Hide input view and show response view
-        hideAskAIView()
-
         // Set original text as the question
         originalText = question
         improvedText = ""
+        currentResponseType = .askAI
 
-        // Show the response container
-        improveWritingView.setHeaderTitle("AI Response")
-        showPreviewContainer()
+        // Navigate to response page
+        pageManager.showPage(.response(type: .askAI))
 
         // Call OpenAI
         OpenAIService.shared.improveText(question, kind: .askAI, onStream: { [weak self] streamedText in
@@ -561,7 +517,7 @@ class KeyboardViewController: UIInputViewController {
                     self?.improvedText = responseText
                     self?.improveWritingView.setText(responseText)
                 case .failure(let error):
-                    self?.hidePreview()
+                    self?.pageManager.showPage(.home)
                     self?.hapticError()
                     self?.showStatus("Error: \(error.localizedDescription)", isError: true)
                 }
@@ -571,30 +527,6 @@ class KeyboardViewController: UIInputViewController {
 
     @objc private func handleAskAIBackTapped() {
         hapticSelection()
-        hideAskAIView()
-    }
-
-    private func showAskAIView() {
-        controlsView.isHidden = true
-        controlsView.statusLabel.isHidden = true
-        controlsView.statusLabel.text = ""
-
-        askAIView.clearQuestion()
-        askAIView.isHidden = false
-        askAIView.alpha = 0
-
-        UIView.animate(withDuration: 0.3) {
-            self.askAIView.alpha = 1
-        }
-    }
-
-    private func hideAskAIView() {
-        UIView.animate(withDuration: 0.3, animations: {
-            self.askAIView.alpha = 0
-        }) { _ in
-            self.askAIView.isHidden = true
-            self.controlsView.isHidden = false
-            self.controlsView.statusLabel.isHidden = false
-        }
+        pageManager.showPage(.home)
     }
 }
