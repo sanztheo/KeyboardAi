@@ -34,6 +34,7 @@ class KeyboardViewController: UIInputViewController {
     }
 
     private func setupKeyboardUI() {
+        // Use transparent background so the host app provides the backdrop
         view.backgroundColor = .clear
         view.isOpaque = false
         inputView?.backgroundColor = .clear
@@ -50,6 +51,12 @@ class KeyboardViewController: UIInputViewController {
         ])
 
         controlsView.improveButton.addTarget(self, action: #selector(handleImproveButtonTapped), for: .touchUpInside)
+        // Home styling and quick actions
+        KeyboardHomeStyling.apply(to: controlsView)
+        controlsView.homeButton.addTarget(self, action: #selector(handleHomeTapped), for: .touchUpInside)
+        controlsView.deleteButton.addTarget(self, action: #selector(handleHomeDeleteTapped), for: .touchUpInside)
+        controlsView.returnButton.addTarget(self, action: #selector(handleHomeReturnTapped), for: .touchUpInside)
+        controlsView.spaceButton.addTarget(self, action: #selector(handleHomeSpaceTapped), for: .touchUpInside)
     }
 
     private func setupImproveWritingView() {
@@ -425,5 +432,23 @@ class KeyboardViewController: UIInputViewController {
 
     override func textDidChange(_ textInput: UITextInput?) {
         _ = textInput  // no-op; keep signature
+    }
+
+    // MARK: - Home quick actions
+    @objc private func handleHomeTapped() {
+        // If preview is visible, go back to home; else do nothing
+        if !improveWritingView.isHidden { hidePreview() }
+    }
+
+    @objc private func handleHomeDeleteTapped() {
+        textDocumentProxy.deleteBackward()
+    }
+
+    @objc private func handleHomeReturnTapped() {
+        textDocumentProxy.insertText("\n")
+    }
+
+    @objc private func handleHomeSpaceTapped() {
+        textDocumentProxy.insertText(" ")
     }
 }
