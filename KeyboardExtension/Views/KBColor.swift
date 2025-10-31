@@ -6,4 +6,3 @@ enum KBColor {
     static let midGreyText = UIColor(red: 0x6C/255.0, green: 0x6C/255.0, blue: 0x6C/255.0, alpha: 1.0) // #6C6C6C
     static let lightBackground = UIColor(white: 0.94, alpha: 1.0) // always light bg for the home screen
 }
-
