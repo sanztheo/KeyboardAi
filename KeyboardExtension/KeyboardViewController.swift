@@ -9,18 +9,8 @@ import UIKit
 
 class KeyboardViewController: UIInputViewController {
 
-    @IBOutlet var nextKeyboardButton: UIButton!
-    private var improveButton: UIButton!
-    private var loadingIndicator: UIActivityIndicatorView!
-    private var statusLabel: UILabel!
-
-    // Preview view components
-    private var previewContainer: UIView!
-    private var previewTextView: UITextView!
-    private var replaceButton: UIButton!
-    private var insertButton: UIButton!
-    private var copyButton: UIButton!
-    private var refreshButton: UIButton!
+    private let controlsView = KeyboardControlsView()
+    private let improveWritingView = ImproveWritingView()
 
     private var originalText: String = ""
     private var improvedText: String = ""
@@ -33,226 +23,65 @@ class KeyboardViewController: UIInputViewController {
         super.viewDidLoad()
 
         setupKeyboardUI()
-        setupPreviewUI()
+        setupImproveWritingView()
     }
 
     private func setupKeyboardUI() {
-        view.backgroundColor = UIColor.systemGray6
+        view.backgroundColor = .clear
+        view.isOpaque = false
+        inputView?.backgroundColor = .clear
+        inputView?.isOpaque = false
 
-        // Setup Improve Writing button
-        improveButton = UIButton(type: .system)
-        improveButton.setTitle("✨ Improve Writing", for: .normal)
-        improveButton.backgroundColor = UIColor.systemPurple
-        improveButton.setTitleColor(.white, for: .normal)
-        improveButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
-        improveButton.layer.cornerRadius = 12
-        improveButton.translatesAutoresizingMaskIntoConstraints = false
-        improveButton.addTarget(self, action: #selector(handleImproveButtonTapped), for: .touchUpInside)
+        controlsView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(controlsView)
 
-        view.addSubview(improveButton)
-
-        // Setup loading indicator
-        loadingIndicator = UIActivityIndicatorView(style: .medium)
-        loadingIndicator.color = .white
-        loadingIndicator.hidesWhenStopped = true
-        loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
-
-        view.addSubview(loadingIndicator)
-
-        // Setup status label
-        statusLabel = UILabel()
-        statusLabel.font = UIFont.systemFont(ofSize: 12)
-        statusLabel.textColor = .secondaryLabel
-        statusLabel.textAlignment = .center
-        statusLabel.numberOfLines = 2
-        statusLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        view.addSubview(statusLabel)
-
-        // Setup next keyboard button
-        nextKeyboardButton = UIButton(type: .system)
-        nextKeyboardButton.setTitle("🌐", for: .normal)
-        nextKeyboardButton.titleLabel?.font = UIFont.systemFont(ofSize: 20)
-        nextKeyboardButton.translatesAutoresizingMaskIntoConstraints = false
-        nextKeyboardButton.addTarget(self, action: #selector(handleInputModeList(from:with:)), for: .allTouchEvents)
-
-        view.addSubview(nextKeyboardButton)
-
-        // Constraints
         NSLayoutConstraint.activate([
-            // Improve button
-            improveButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            improveButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 15),
-            improveButton.widthAnchor.constraint(equalToConstant: 220),
-            improveButton.heightAnchor.constraint(equalToConstant: 50),
-
-            // Loading indicator
-            loadingIndicator.centerXAnchor.constraint(equalTo: improveButton.centerXAnchor),
-            loadingIndicator.centerYAnchor.constraint(equalTo: improveButton.centerYAnchor),
-
-            // Status label
-            statusLabel.topAnchor.constraint(equalTo: improveButton.bottomAnchor, constant: 10),
-            statusLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            statusLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
-
-            // Next keyboard button
-            nextKeyboardButton.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 10),
-            nextKeyboardButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -10),
-            nextKeyboardButton.widthAnchor.constraint(equalToConstant: 40),
-            nextKeyboardButton.heightAnchor.constraint(equalToConstant: 40)
+            controlsView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            controlsView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            controlsView.topAnchor.constraint(equalTo: view.topAnchor),
+            controlsView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+
+        controlsView.improveButton.addTarget(self, action: #selector(handleImproveButtonTapped), for: .touchUpInside)
+        controlsView.nextKeyboardButton.addTarget(self, action: #selector(handleInputModeList(from:with:)), for: .allTouchEvents)
     }
 
-    private func setupPreviewUI() {
-        // Container for preview (utilisé comme "page" dédiée)
-        previewContainer = UIView()
-        previewContainer.backgroundColor = UIColor.systemBackground
-        previewContainer.layer.cornerRadius = 12
-        previewContainer.translatesAutoresizingMaskIntoConstraints = false
-        previewContainer.isHidden = true
+    private func setupImproveWritingView() {
+        improveWritingView.translatesAutoresizingMaskIntoConstraints = false
+        improveWritingView.isHidden = true
+        view.addSubview(improveWritingView)
 
-        view.addSubview(previewContainer)
-
-        // Header: titre + bouton refresh
-        let header = UIView()
-        header.translatesAutoresizingMaskIntoConstraints = false
-        previewContainer.addSubview(header)
-
-        // Title label
-        let titleLabel = UILabel()
-        titleLabel.text = "✨ Improved Text"
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 16)
-        titleLabel.textAlignment = .left
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        header.addSubview(titleLabel)
-
-        // Refresh button (icone)
-        refreshButton = UIButton(type: .system)
-        if let img = UIImage(systemName: "arrow.clockwise") {
-            refreshButton.setImage(img, for: .normal)
-        } else {
-            refreshButton.setTitle("↻", for: .normal)
-        }
-        refreshButton.tintColor = .label
-        refreshButton.translatesAutoresizingMaskIntoConstraints = false
-        refreshButton.addTarget(self, action: #selector(handleRefreshTapped), for: .touchUpInside)
-        header.addSubview(refreshButton)
-
-        // Text view for preview
-        previewTextView = UITextView()
-        previewTextView.font = UIFont.systemFont(ofSize: 14)
-        previewTextView.backgroundColor = UIColor.systemGray6
-        previewTextView.layer.cornerRadius = 8
-        previewTextView.isEditable = false
-        previewTextView.isScrollEnabled = true
-        previewTextView.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-        previewTextView.translatesAutoresizingMaskIntoConstraints = false
-
-        previewContainer.addSubview(previewTextView)
-
-        // Boutons d'action: Replace / Insert / Copy
-        replaceButton = UIButton(type: .system)
-        replaceButton.setTitle("Replace", for: .normal)
-        replaceButton.backgroundColor = UIColor.systemGreen
-        replaceButton.setTitleColor(.white, for: .normal)
-        replaceButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
-        replaceButton.layer.cornerRadius = 10
-        replaceButton.translatesAutoresizingMaskIntoConstraints = false
-        replaceButton.addTarget(self, action: #selector(handleReplaceTapped), for: .touchUpInside)
-        previewContainer.addSubview(replaceButton)
-
-        insertButton = UIButton(type: .system)
-        insertButton.setTitle("Insert", for: .normal)
-        insertButton.backgroundColor = UIColor.systemBlue
-        insertButton.setTitleColor(.white, for: .normal)
-        insertButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
-        insertButton.layer.cornerRadius = 10
-        insertButton.translatesAutoresizingMaskIntoConstraints = false
-        insertButton.addTarget(self, action: #selector(handleInsertTapped), for: .touchUpInside)
-        previewContainer.addSubview(insertButton)
-
-        copyButton = UIButton(type: .system)
-        copyButton.setTitle("Copy", for: .normal)
-        copyButton.backgroundColor = UIColor.systemGray
-        copyButton.setTitleColor(.white, for: .normal)
-        copyButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
-        copyButton.layer.cornerRadius = 10
-        copyButton.translatesAutoresizingMaskIntoConstraints = false
-        copyButton.addTarget(self, action: #selector(handleCopyTapped), for: .touchUpInside)
-        previewContainer.addSubview(copyButton)
-
-        // Constraints
-        let minTextHeight = previewTextView.heightAnchor.constraint(greaterThanOrEqualToConstant: 90)
         NSLayoutConstraint.activate([
-            // Container: occupe toute la zone du clavier
-            previewContainer.topAnchor.constraint(equalTo: view.topAnchor, constant: 6),
-            previewContainer.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),
-            previewContainer.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -6),
-            previewContainer.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -6),
-
-            // Header
-            header.topAnchor.constraint(equalTo: previewContainer.topAnchor, constant: 10),
-            header.leadingAnchor.constraint(equalTo: previewContainer.leadingAnchor, constant: 10),
-            header.trailingAnchor.constraint(equalTo: previewContainer.trailingAnchor, constant: -10),
-            header.heightAnchor.constraint(equalToConstant: 24),
-
-            titleLabel.leadingAnchor.constraint(equalTo: header.leadingAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: header.centerYAnchor),
-            refreshButton.trailingAnchor.constraint(equalTo: header.trailingAnchor),
-            refreshButton.centerYAnchor.constraint(equalTo: header.centerYAnchor),
-
-            // Text view
-            previewTextView.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 10),
-            previewTextView.leadingAnchor.constraint(equalTo: previewContainer.leadingAnchor, constant: 10),
-            previewTextView.trailingAnchor.constraint(equalTo: previewContainer.trailingAnchor, constant: -10),
-            previewTextView.bottomAnchor.constraint(equalTo: replaceButton.topAnchor, constant: -12),
-            minTextHeight,
-
-            // Action buttons row
-            replaceButton.leadingAnchor.constraint(equalTo: previewContainer.leadingAnchor, constant: 10),
-            replaceButton.bottomAnchor.constraint(equalTo: previewContainer.bottomAnchor, constant: -10),
-            replaceButton.heightAnchor.constraint(equalToConstant: 44),
-
-            insertButton.leadingAnchor.constraint(equalTo: replaceButton.trailingAnchor, constant: 8),
-            insertButton.centerYAnchor.constraint(equalTo: replaceButton.centerYAnchor),
-            insertButton.widthAnchor.constraint(equalTo: replaceButton.widthAnchor),
-            insertButton.heightAnchor.constraint(equalTo: replaceButton.heightAnchor),
-
-            copyButton.leadingAnchor.constraint(equalTo: insertButton.trailingAnchor, constant: 8),
-            copyButton.trailingAnchor.constraint(equalTo: previewContainer.trailingAnchor, constant: -10),
-            copyButton.centerYAnchor.constraint(equalTo: replaceButton.centerYAnchor),
-            copyButton.widthAnchor.constraint(equalTo: replaceButton.widthAnchor),
-            copyButton.heightAnchor.constraint(equalTo: replaceButton.heightAnchor)
+            improveWritingView.topAnchor.constraint(equalTo: view.topAnchor, constant: 6),
+            improveWritingView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),
+            improveWritingView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -6),
+            improveWritingView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -6)
         ])
 
-        // Répartir équitablement la largeur des trois boutons
-        replaceButton.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        insertButton.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        copyButton.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        improveWritingView.replaceButton.addTarget(self, action: #selector(handleReplaceTapped), for: .touchUpInside)
+        improveWritingView.insertButton.addTarget(self, action: #selector(handleInsertTapped), for: .touchUpInside)
+        improveWritingView.copyButton.addTarget(self, action: #selector(handleCopyTapped), for: .touchUpInside)
+        improveWritingView.refreshButton.addTarget(self, action: #selector(handleRefreshTapped), for: .touchUpInside)
     }
 
     @objc private func handleImproveButtonTapped() {
         let proxy = textDocumentProxy
 
-        // Get all text before cursor
         guard let textBefore = proxy.documentContextBeforeInput, !textBefore.isEmpty else {
             showStatus("No text to improve", isError: true)
             return
         }
 
         setLoading(true)
-        statusLabel.text = "Improving your text..."
+        controlsView.statusLabel.text = "Improving your text..."
 
-        // Store original text
         originalText = textBefore
 
-        // Show preview page immediately with empty text
         showPreviewContainer()
 
         OpenAIService.shared.improveText(textBefore, onStream: { [weak self] streamedText in
-            // Update preview text in real-time as AI streams response
             DispatchQueue.main.async {
-                self?.previewTextView.text = streamedText
+                self?.improveWritingView.setText(streamedText)
                 self?.improvedText = streamedText
             }
         }, completion: { [weak self] result in
@@ -261,9 +90,8 @@ class KeyboardViewController: UIInputViewController {
 
                 switch result {
                 case .success(let improvedText):
-                    // Final text already set via streaming, just update stored value
                     self?.improvedText = improvedText
-                    self?.previewTextView.text = improvedText
+                    self?.improveWritingView.setText(improvedText)
 
                 case .failure(let error):
                     self?.hidePreview()
@@ -274,46 +102,32 @@ class KeyboardViewController: UIInputViewController {
     }
 
     private func showPreviewContainer() {
-        // Hide main button and status
-        improveButton.isHidden = true
-        statusLabel.isHidden = true
+        controlsView.isHidden = true
+        controlsView.statusLabel.isHidden = true
+        controlsView.statusLabel.text = ""
 
-        // Clear preview text (will be filled by streaming)
-        previewTextView.text = ""
+        improveWritingView.clearText()
+        improveWritingView.isHidden = false
+        improveWritingView.alpha = 0
 
-        // Show preview
-        previewContainer.isHidden = false
-
-        // Animation
-        previewContainer.alpha = 0
         UIView.animate(withDuration: 0.3) {
-            self.previewContainer.alpha = 1
+            self.improveWritingView.alpha = 1
         }
     }
 
-    // Replace: supprime le texte original et insère le texte amélioré
     @objc private func handleReplaceTapped() {
         let proxy = textDocumentProxy
 
-        // Delete the original text character by character
         for _ in 0..<originalText.count {
             proxy.deleteBackward()
         }
 
-        // Insert the improved text
         proxy.insertText(improvedText)
 
-        // Hide preview and show success
         hidePreview()
         showStatus("✓ Text improved!", isError: false)
-
-        // Clear status after 2 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-            self?.statusLabel.text = ""
-        }
     }
 
-    // Insert: insère le texte amélioré sans supprimer l'existant
     @objc private func handleInsertTapped() {
         let proxy = textDocumentProxy
         proxy.insertText(improvedText)
@@ -321,7 +135,6 @@ class KeyboardViewController: UIInputViewController {
         showStatus("✓ Inserted", isError: false)
     }
 
-    // Copy: copie le texte amélioré dans le presse-papiers
     @objc private func handleCopyTapped() {
         #if canImport(UIKit)
         UIPasteboard.general.string = improvedText
@@ -329,15 +142,14 @@ class KeyboardViewController: UIInputViewController {
         showStatus("✓ Copied", isError: false)
     }
 
-    // Refresh: relance l'amélioration pour obtenir une nouvelle version
     @objc private func handleRefreshTapped() {
         guard !originalText.isEmpty else { return }
         setLoading(true)
-        previewTextView.text = ""
+        improveWritingView.clearText()
         improvedText = ""
         OpenAIService.shared.improveText(originalText, onStream: { [weak self] streamedText in
             DispatchQueue.main.async {
-                self?.previewTextView.text = streamedText
+                self?.improveWritingView.setText(streamedText)
                 self?.improvedText = streamedText
             }
         }, completion: { [weak self] result in
@@ -353,50 +165,50 @@ class KeyboardViewController: UIInputViewController {
 
     private func hidePreview() {
         UIView.animate(withDuration: 0.3, animations: {
-            self.previewContainer.alpha = 0
+            self.improveWritingView.alpha = 0
         }) { _ in
-            self.previewContainer.isHidden = true
-            self.improveButton.isHidden = false
-            self.statusLabel.isHidden = false
+            self.improveWritingView.isHidden = true
+            self.controlsView.isHidden = false
+            self.controlsView.statusLabel.isHidden = false
         }
     }
 
     private func setLoading(_ loading: Bool) {
         if loading {
-            improveButton.setTitle("", for: .normal)
-            loadingIndicator.startAnimating()
-            improveButton.isEnabled = false
-            refreshButton?.isEnabled = false
+            controlsView.improveButton.setTitle("", for: .normal)
+            controlsView.loadingIndicator.startAnimating()
+            controlsView.improveButton.isEnabled = false
+            improveWritingView.refreshButton.isEnabled = false
         } else {
-            improveButton.setTitle("✨ Improve Writing", for: .normal)
-            loadingIndicator.stopAnimating()
-            improveButton.isEnabled = true
-            refreshButton?.isEnabled = true
+            controlsView.improveButton.setTitle("✨ Improve Writing", for: .normal)
+            controlsView.loadingIndicator.stopAnimating()
+            controlsView.improveButton.isEnabled = true
+            improveWritingView.refreshButton.isEnabled = true
         }
     }
 
     private func showStatus(_ message: String, isError: Bool) {
-        statusLabel.text = message
-        statusLabel.textColor = isError ? .systemRed : .systemGreen
+        controlsView.statusLabel.isHidden = false
+        controlsView.statusLabel.text = message
+        controlsView.statusLabel.textColor = isError ? .systemRed : .systemGreen
 
         if isError {
-            // Shake animation for errors
             let shake = CAKeyframeAnimation(keyPath: "transform.translation.x")
             shake.timingFunction = CAMediaTimingFunction(name: .linear)
             shake.values = [-10, 10, -8, 8, -5, 5, 0]
             shake.duration = 0.6
-            improveButton.layer.add(shake, forKey: "shake")
+            controlsView.improveButton.layer.add(shake, forKey: "shake")
         }
 
-        // Clear status after 3 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
-            self?.statusLabel.text = ""
+            self?.controlsView.statusLabel.text = ""
+            self?.controlsView.statusLabel.textColor = .secondaryLabel
         }
     }
 
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        nextKeyboardButton?.isHidden = !needsInputModeSwitchKey
+        controlsView.nextKeyboardButton.isHidden = !needsInputModeSwitchKey
     }
 
     override func textWillChange(_ textInput: UITextInput?) {
@@ -404,19 +216,8 @@ class KeyboardViewController: UIInputViewController {
     }
 
     override func textDidChange(_ textInput: UITextInput?) {
-        // Update keyboard appearance based on dark mode
-        var textColor: UIColor
         let proxy = textDocumentProxy
-        if proxy.keyboardAppearance == UIKeyboardAppearance.dark {
-            textColor = .white
-            view.backgroundColor = UIColor.systemGray5
-            previewContainer?.backgroundColor = UIColor.systemGray5
-        } else {
-            textColor = .black
-            view.backgroundColor = UIColor.systemGray6
-            previewContainer?.backgroundColor = UIColor.systemBackground
-        }
-        nextKeyboardButton.setTitleColor(textColor, for: [])
+        let textColor: UIColor = proxy.keyboardAppearance == .dark ? .white : .label
+        controlsView.nextKeyboardButton.setTitleColor(textColor, for: [])
     }
-
 }
