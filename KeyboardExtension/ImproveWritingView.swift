@@ -3,15 +3,15 @@ import UIKit
 final class ImproveWritingView: UIView {
     let textView: UITextView = {
         let textView = UITextView()
-        textView.font = UIFont.systemFont(ofSize: 14)
-        textView.backgroundColor = .clear
-        textView.layer.cornerRadius = 8
-        textView.layer.borderWidth = 1
-        textView.layer.borderColor = UIColor.systemGray4.cgColor
+        textView.font = UIFont.systemFont(ofSize: 16)
+        textView.backgroundColor = .clear // no background block
+        textView.layer.cornerRadius = 0   // no border / rounded box
+        textView.layer.borderWidth = 0
+        textView.layer.borderColor = UIColor.clear.cgColor
         textView.isOpaque = false
         textView.isEditable = false
         textView.isScrollEnabled = true
-        textView.textContainerInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        textView.textContainerInset = UIEdgeInsets(top: 6, left: 2, bottom: 6, right: 2)
         textView.translatesAutoresizingMaskIntoConstraints = false
         return textView
     }()
@@ -53,8 +53,8 @@ final class ImproveWritingView: UIView {
 
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "✨ Improved Text"
-        label.font = UIFont.boldSystemFont(ofSize: 16)
+        label.text = "Improved Text" // remove icon
+        label.font = UIFont.boldSystemFont(ofSize: 17)
         label.textAlignment = .left
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -71,6 +71,7 @@ final class ImproveWritingView: UIView {
     }
 
     private func setup() {
+        // Transparent to let the keyboard's own background show through
         backgroundColor = .clear
         isOpaque = false
 
@@ -83,13 +84,21 @@ final class ImproveWritingView: UIView {
         header.addSubview(titleLabel)
         addSubview(textView)
 
-        // Bottom action bar
-        let buttonStack = UIStackView(arrangedSubviews: [replaceButton, insertButton, refreshButton])
+        // Bottom action bar: Replace + Insert (left), Reload (trailing standalone)
+        let buttonStack = UIStackView(arrangedSubviews: [replaceButton, insertButton])
         buttonStack.axis = .horizontal
         buttonStack.distribution = .fillEqually
         buttonStack.spacing = 8
         buttonStack.translatesAutoresizingMaskIntoConstraints = false
         addSubview(buttonStack)
+        addSubview(refreshButton)
+
+        // Style buttons (pills)
+        replaceButton.layer.cornerRadius = 12
+        insertButton.layer.cornerRadius = 12
+        replaceButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
+        insertButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
+        refreshButton.tintColor = .label
 
         NSLayoutConstraint.activate([
             header.topAnchor.constraint(equalTo: topAnchor, constant: 10),
@@ -103,11 +112,16 @@ final class ImproveWritingView: UIView {
             textView.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 10),
             textView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             textView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-            buttonStack.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 12),
+            buttonStack.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 10),
             buttonStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
-            buttonStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
+            buttonStack.trailingAnchor.constraint(lessThanOrEqualTo: refreshButton.leadingAnchor, constant: -12),
             buttonStack.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
-            buttonStack.heightAnchor.constraint(equalToConstant: 44)
+            buttonStack.heightAnchor.constraint(equalToConstant: 44),
+
+            refreshButton.centerYAnchor.constraint(equalTo: buttonStack.centerYAnchor),
+            refreshButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
+            refreshButton.widthAnchor.constraint(equalToConstant: 36),
+            refreshButton.heightAnchor.constraint(equalToConstant: 36)
         ])
 
         let minTextHeight = textView.heightAnchor.constraint(greaterThanOrEqualToConstant: 90)
