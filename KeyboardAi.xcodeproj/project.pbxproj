@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AA65E4132EB54818006C37F4 /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA65E4122EB54818006C37F4 /* KeyboardKit */; };
+		AA65E4152EB5482E006C37F4 /* KeyboardKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA65E4142EB5482E006C37F4 /* KeyboardKit */; };
 		AADAF0E62EB3F0F400C6E5BA /* KeyboardExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AADAF0DF2EB3F0F400C6E5BA /* KeyboardExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -106,6 +108,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA65E4152EB5482E006C37F4 /* KeyboardKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -127,12 +130,20 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AA65E4132EB54818006C37F4 /* KeyboardKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		AA65E4112EB54818006C37F4 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		AADAF09E2EB3F0C500C6E5BA = {
 			isa = PBXGroup;
 			children = (
@@ -140,6 +151,7 @@
 				AADAF0C02EB3F0C700C6E5BA /* KeyboardAiTests */,
 				AADAF0CA2EB3F0C700C6E5BA /* KeyboardAiUITests */,
 				AADAF0E02EB3F0F400C6E5BA /* KeyboardExtension */,
+				AA65E4112EB54818006C37F4 /* Frameworks */,
 				AADAF0A82EB3F0C500C6E5BA /* Products */,
 			);
 			sourceTree = "<group>";
@@ -177,6 +189,7 @@
 			);
 			name = KeyboardAi;
 			packageProductDependencies = (
+				AA65E4142EB5482E006C37F4 /* KeyboardKit */,
 			);
 			productName = KeyboardAi;
 			productReference = AADAF0A72EB3F0C500C6E5BA /* KeyboardAi.app */;
@@ -245,6 +258,7 @@
 			);
 			name = KeyboardExtension;
 			packageProductDependencies = (
+				AA65E4122EB54818006C37F4 /* KeyboardKit */,
 			);
 			productName = KeyboardExtension;
 			productReference = AADAF0DF2EB3F0F400C6E5BA /* KeyboardExtension.appex */;
@@ -285,6 +299,9 @@
 			);
 			mainGroup = AADAF09E2EB3F0C500C6E5BA;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AA65E4102EB54809006C37F4 /* XCRemoteSwiftPackageReference "KeyboardKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AADAF0A82EB3F0C500C6E5BA /* Products */;
 			projectDirPath = "";
@@ -751,6 +768,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AA65E4102EB54809006C37F4 /* XCRemoteSwiftPackageReference "KeyboardKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/KeyboardKit/KeyboardKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.0.5;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AA65E4122EB54818006C37F4 /* KeyboardKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA65E4102EB54809006C37F4 /* XCRemoteSwiftPackageReference "KeyboardKit" */;
+			productName = KeyboardKit;
+		};
+		AA65E4142EB5482E006C37F4 /* KeyboardKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AA65E4102EB54809006C37F4 /* XCRemoteSwiftPackageReference "KeyboardKit" */;
+			productName = KeyboardKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = AADAF09F2EB3F0C500C6E5BA /* Project object */;
 }

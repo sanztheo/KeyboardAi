@@ -15,13 +15,14 @@ class OpenAIService {
 
     private init() {}
 
-    enum PromptKind { case improve, shorten, lengthen }
+    enum PromptKind { case improve, shorten, lengthen, askAI }
 
     private func prompt(for kind: PromptKind) -> String {
         switch kind {
         case .improve: return ImprovePrompt.text
         case .shorten: return ShortenPrompt.text
         case .lengthen: return LengthenPrompt.text
+        case .askAI: return AskAIPrompt.text
         }
     }
 

@@ -23,6 +23,13 @@ final class KeyboardControlsView: UIView {
         return b
     }()
 
+    let askAIButton: UIButton = {
+        let b = UIButton(type: .system)
+        b.layer.cornerRadius = 12
+        b.translatesAutoresizingMaskIntoConstraints = false
+        return b
+    }()
+
     let loadingIndicator: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView(style: .medium)
         indicator.color = .gray
@@ -93,10 +100,10 @@ final class KeyboardControlsView: UIView {
         topRow.addArrangedSubview(improveButton)
         topRow.addArrangedSubview(lengthenButton)
         bottomRow.addArrangedSubview(shortenButton)
-        bottomRow.addArrangedSubview(UIView()) // placeholder to keep grid form
+        bottomRow.addArrangedSubview(askAIButton)
 
         // Then set size constraints (now they share a common ancestor)
-        [improveButton, shortenButton, lengthenButton].forEach { btn in
+        [improveButton, shortenButton, lengthenButton, askAIButton].forEach { btn in
             btn.widthAnchor.constraint(equalTo: tileScrollView.frameLayoutGuide.widthAnchor, multiplier: KBLayout.tileWidthMultiplier).isActive = true
             btn.heightAnchor.constraint(equalToConstant: KBLayout.tileHeight).isActive = true
         }
@@ -145,13 +152,14 @@ final class KeyboardControlsView: UIView {
     }
 
     // MARK: - Public UI helpers
-    enum Tile { case improve, shorten, lengthen }
+    enum Tile { case improve, shorten, lengthen, askAI }
 
     private func button(for tile: Tile) -> UIButton {
         switch tile {
         case .improve: return improveButton
         case .shorten: return shortenButton
         case .lengthen: return lengthenButton
+        case .askAI: return askAIButton
         }
     }
 
@@ -160,6 +168,7 @@ final class KeyboardControlsView: UIView {
         case .improve: return ("Improve Writing", "sparkles")
         case .shorten: return ("Make Shorter", "minus.circle")
         case .lengthen: return ("Make Longer", "plus.circle")
+        case .askAI: return ("Ask AI", "questionmark.circle")
         }
     }
 

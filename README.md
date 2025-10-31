@@ -2,9 +2,9 @@
 
 <img src="img/banner.png" alt="KeyboardAi banner" width="100%" />
 
-# KeyboardAi - Clavier iOS qui améliore votre écriture avec l’IA
+# KeyboardAi — iOS Keyboard that Improves Your Writing with AI
 
-Améliorez grammaire, style et clarté en un tap - directement depuis un clavier iOS. Propulsé par OpenAI `gpt-4o-mini`, streaming en temps réel et respect de la confidentialité.
+Improve grammar, style, and clarity in one tap — right from an iOS keyboard. Powered by OpenAI `gpt-4o-mini`, real‑time streaming, and a privacy‑first design.
 
 <br/>
 
@@ -12,81 +12,81 @@ Améliorez grammaire, style et clarté en un tap - directement depuis un clavier
 
 ---
 
-## Sommaire
+## Table of Contents
 
-- Présentation
-- Fonctionnalités
-- Sécurité & Confidentialité
-- Prérequis
-- Installation rapide
-- Activer le clavier
-- Utilisation
+- Overview
+- Features
+- Security & Privacy
+- Requirements
+- Quick Setup
+- Enable the Keyboard
+- Usage
 - Architecture
-- Détails techniques
-- Dépannage (FAQ)
+- Technical Details
+- Troubleshooting (FAQ)
 - Roadmap
-- Licence & Crédits
+- License & Credits
 
 ---
 
-## Présentation
+## Overview
 
-KeyboardAi est un clavier iOS qui corrige et reformule votre texte pour le rendre plus clair, correct et naturel - sans quitter votre app. L’extension lit le texte accessible autour du curseur, envoie la demande à l’API OpenAI et affiche un aperçu que vous pouvez insérer ou remplacer.
+KeyboardAi is an iOS keyboard that rewrites and refines your text to make it clearer, more correct, and more natural — without leaving your app. The extension reads the accessible text around the cursor, sends a request to the OpenAI API, and shows a live preview you can insert or replace.
 
-> Recommandé: iOS 15+ (streaming). iOS < 15 pris en charge en mode non‑streaming.
+> Recommended: iOS 15+ (streaming). iOS < 15 is supported with non‑streaming mode.
 
-## Fonctionnalités
+## Features
 
-- Amélioration en un tap: « ✨ Improve Writing »
-- Raccourcir le texte: « Make Shorter » (concis, sans perdre le sens)
-- Allonger le texte: « Make Longer » (développe, ajoute des transitions)
-- Aperçu en direct: streaming du résultat, puis Replace / Insert / Copy
-- Lecture « best‑effort » du contexte via `textDocumentProxy`
-- Design clair, indicateurs d’état, retours haptiques
+- One‑tap improvement: “✨ Improve Writing”
+- Shorten text: “Make Shorter” (concise without losing meaning)
+- Lengthen text: “Make Longer” (expands, adds transitions)
+- Live preview: streamed result, then Replace / Insert / Copy
+- Best‑effort context reading via `textDocumentProxy`
+- Clear design, status indicators, and haptic feedback
 
-## Sécurité & Confidentialité
+## Security & Privacy
 
-- Clé API stockée en toute sécurité dans le Keychain iOS
-- Partage sécurisé via App Groups (app + keyboard) `group.tye.KeyboardAi`
-- Pas de clé API en clair dans le repo
-- Appels chiffrés (HTTPS) uniquement vers l’API OpenAI
-- Aucun suivi analytics intégré; seul le texte envoyé lors d’une action utilisateur est transmis à l’API
+- API key stored securely in the iOS Keychain
+- Secure sharing via App Groups (app + keyboard) `group.tye.KeyboardAi`
+- No API key in plain text in the repo
+- Encrypted (HTTPS) calls only to the OpenAI API
+- No built‑in analytics; only text sent upon explicit user action is transmitted to the API
 
-## Prérequis
+## Requirements
 
-1) Compte OpenAI et clé API (crédits requis)
+1) OpenAI account and API key (credits required)
 
-2) Capacités Xcode pour le partage app/extension:
-- App Groups: `group.tye.KeyboardAi` sur les cibles `KeyboardAi` et `KeyboardExtension`
-- Keychain Sharing: même identifiant de groupe sur les deux cibles
+2) Xcode capabilities for app/extension sharing:
+- App Groups: `group.tye.KeyboardAi` on targets `KeyboardAi` and `KeyboardExtension`
+- Keychain Sharing: same access group on both targets
 
-## Installation rapide
+## Quick Setup
 
 ```bash
-open KeyboardAi.xcodeproj  # ouvre le projet dans Xcode
+open KeyboardAi.xcodeproj  # open the project in Xcode
 ```
 
-Dans l’app `KeyboardAi`:
-- Saisissez votre clé API (`sk-…`)
-- « 💾 Save API Key », puis « 🧪 Test API Key »
+In the `KeyboardAi` app:
+- Enter your API key (`sk-…`)
+- “💾 Save API Key”, then “🧪 Test API Key”
 
-## Activer le clavier
+## Enable the Keyboard
 
-1. Réglages iOS → Général → Clavier → Claviers → Ajouter un clavier…
-2. Choisissez « KeyboardExtension »
-3. Activez « Autoriser l’accès complet » (indispensable pour le réseau)
+1. iOS Settings → General → Keyboard → Keyboards → Add New Keyboard…
+2. Choose “KeyboardExtension”
+3. Enable “Allow Full Access” (required for networking)
 
-## Utilisation
+## Usage
 
-1. Placez le curseur dans n’importe quelle app (Notes, Mail, Messages…)
-2. Passez au clavier « KeyboardExtension » (globe 🌐)
-3. Écrivez votre texte puis choisissez l’action:
-   - ✨ Improve Writing → corrige et améliore
-   - Make Shorter → rend plus concis
-   - Make Longer → développe le propos
-4. Prévisualisez en direct puis choisissez Replace, Insert ou Copy
+1. Place the cursor in any app (Notes, Mail, Messages…)
+2. Switch to the “KeyboardExtension” keyboard (globe 🌐)
+3. Type your text, then choose an action:
+   - ✨ Improve Writing → corrects and improves
+   - Make Shorter → makes it more concise
+   - Make Longer → expands the idea
+4. Preview live, then choose Replace, Insert, or Copy
 
-Exemples rapides:
+Quick examples:
 
 ```
 Improve   : i want go to store today maybe buy some thing
@@ -101,81 +101,81 @@ Lengthen  : The meeting was productive
 
 ## Architecture
 
-### Vues et style (nouveau découpage)
+### Views and Styling (new layout)
 
 ```
 KeyboardExtension/
  ├─ Views/
- │  ├─ KBColor.swift                 # Palette centralisée (tileBG, midGreyText…)
- │  ├─ KeyboardHomeStyling.swift     # Style de l'accueil (Improve + Shorten + Lengthen)
- │  ├─ KeyboardControlsView.swift    # Accueil (boutons, status, barre du bas)
- │  ├─ BottomActionBarView.swift     # Barre [space | delete | return]
- │  └─ ImproveWritingView.swift      # Aperçu IA (stream + Insert/Replace/Copy/Refresh/Back)
+ │  ├─ KBColor.swift                 # Centralized palette (tileBG, midGreyText…)
+ │  ├─ KeyboardHomeStyling.swift     # Home styling (Improve + Shorten + Lengthen)
+ │  ├─ KeyboardControlsView.swift    # Home (buttons, status, bottom bar)
+ │  ├─ BottomActionBarView.swift     # Bar [space | delete | return]
+ │  └─ ImproveWritingView.swift      # AI preview (stream + Insert/Replace/Copy/Refresh/Back)
  ├─ Prompts/
- │  ├─ ImprovePrompt.swift           # Prompt système pour l’amélioration
- │  ├─ ShortenPrompt.swift           # Prompt système pour raccourcir
- │  └─ LengthenPrompt.swift          # Prompt système pour allonger
- ├─ KeyboardViewController.swift     # Orchestration + câblage des actions
- ├─ TextProxyBestEffort.swift        # Lecture complète via proxy (balayage + probes)
- └─ OpenAIService.swift              # Streaming SSE (iOS 15+) + fallback
+ │  ├─ ImprovePrompt.swift           # System prompt for improvement
+ │  ├─ ShortenPrompt.swift           # System prompt for shortening
+ │  └─ LengthenPrompt.swift          # System prompt for lengthening
+ ├─ KeyboardViewController.swift     # Orchestration + wiring of actions
+ ├─ TextProxyBestEffort.swift        # Full read via proxy (scan + probes)
+ └─ OpenAIService.swift              # SSE streaming (iOS 15+) + fallback
 ```
 
-Conseil Xcode: si vous voyez des fichiers grisés après ce déplacement, glissez‑déposez le dossier `Views/` dans la cible `KeyboardExtension` pour mettre à jour les références.
+Xcode tip: if you see greyed‑out files after this move, drag‑drop the `Views/` folder into the `KeyboardExtension` target to refresh references.
 
 ```
 KeyboardAi/
-├─ KeyboardAi/                     # Application hôte (clé API, test, guides)
-│  ├─ ViewController.swift         # UI de configuration + test API
-│  ├─ KeychainHelper.swift         # Stockage sécurisé (Keychain + App Group)
-│  └─ OpenAIService.swift          # App: requêtes non‑streaming
+├─ KeyboardAi/                     # Host application (API key, test, guides)
+│  ├─ ViewController.swift         # Configuration UI + API test
+│  ├─ KeychainHelper.swift         # Secure storage (Keychain + App Group)
+│  └─ OpenAIService.swift          # App: non‑streaming requests
 │
-└─ KeyboardExtension/              # Extension de clavier
-   ├─ KeyboardViewController.swift # Orchestration UI + logique
-   ├─ Views/…                      # Vues et style (voir ci‑dessus)
-   ├─ Prompts/…                    # Prompts système (Improve/Shorten/Lengthen)
-   ├─ TextProxyBestEffort.swift    # Lecture « tout le texte accessible »
-   └─ OpenAIService.swift          # Extension: requêtes streaming (iOS 15+)
+└─ KeyboardExtension/              # Keyboard extension
+   ├─ KeyboardViewController.swift # UI orchestration + logic
+   ├─ Views/…                      # Views and styling (see above)
+   ├─ Prompts/…                    # System prompts (Improve/Shorten/Lengthen)
+   ├─ TextProxyBestEffort.swift    # Read “all accessible text”
+   └─ OpenAIService.swift          # Extension: streaming requests (iOS 15+)
 ```
 
-## Détails techniques
+## Technical Details
 
-- Modèle OpenAI: `gpt-4o-mini` (rapide/économique), `temperature = 0.3`
-- Streaming SSE côté extension (fallback non‑streaming pour iOS < 15)
-- Budget large d’entrée (≈ 10 000 tokens, ≈ 40 000 caractères)
-- « Best‑effort select all »: lecture de tout le contexte accessible sans altérer le document
-- OpenAIService avec `PromptKind` (`improve|shorten|lengthen`) et prompts modulaires
-- Insertion Replace/Insert via `textDocumentProxy`; Copy et Refresh côté aperçu
+- OpenAI model: `gpt-4o-mini` (fast/cost‑effective), `temperature = 0.3`
+- SSE streaming on the extension (non‑streaming fallback for iOS < 15)
+- Large input budget (≈ 10,000 tokens, ≈ 40,000 characters)
+- “Best‑effort select all”: reads all accessible context without altering the document
+- `OpenAIService` with `PromptKind` (`improve|shorten|lengthen`) and modular prompts
+- Replace/Insert via `textDocumentProxy`; Copy and Refresh in the preview
 
-### Limitations iOS à connaître
+### iOS limitations to know
 
-- Les claviers ne peuvent pas sélectionner officiellement du texte: lecture via contexte avant/après
-- L’accès réseau nécessite « Autoriser l’accès complet »
-- Le texte après le curseur peut ne pas être accessible selon l’app hôte
+- Keyboards cannot officially select text: reading is via before/after context
+- Network access requires “Allow Full Access”
+- Text after the cursor may be inaccessible depending on the host app
 
-## Dépannage (FAQ)
+## Troubleshooting (FAQ)
 
-- « API key not configured » → Enregistrez la clé dans l’app, vérifiez App Group + Keychain Sharing
-- « No text to improve » → Tapez du texte et assurez‑vous que le curseur suit le texte
-- « Network request failed » → Activez l’accès complet, vérifiez la connexion et la clé
+- “API key not configured” → Save the key in the app, verify App Group + Keychain Sharing
+- “No text to improve” → Type some text and ensure the cursor follows the text
+- “Network request failed” → Enable Full Access, check your connection and key
 
-Astuce debug:
+Debug tip:
 
 ```swift
-// Dans l’extension
+// In the extension
 print("[KeyboardAI] captured=\(capturedText.count)")
 print("[KeyboardAI] improved=\(improvedText.count)")
 ```
 
 ## Roadmap
 
-- Styles d’écriture (formel, concis, amical…)
-- Suggestions multiples et choix utilisateur
-- Raccourcis clavier et personnalisation UI
-- Historique local + copie rapide
-- Streaming avec indicateurs progressifs
+- Writing styles (formal, concise, friendly…)
+- Multiple suggestions with user choice
+- Keyboard shortcuts and UI customization
+- Local history + quick copy
+- Streaming with progressive indicators
 
-## Licence & Crédits
+## License & Credits
 
-Projet d’exemple éducatif. Utilisez‑le librement pour apprendre et construire vos idées. Créé par Sanz (31/10/2025).
+Educational sample project. Use it freely to learn and build your ideas. Created by Sanz (October 31, 2025).
 
-Note: Respectez les politiques d’OpenAI et ne partagez jamais de clé API en public.
+Note: Respect OpenAI’s policies and never share an API key publicly.

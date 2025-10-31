@@ -11,10 +11,12 @@ class KeyboardViewController: UIInputViewController {
 
     private let controlsView = KeyboardControlsView()
     private let improveWritingView = ImproveWritingView()
+    private let askAIView = AskAIView()
 
     private var originalText: String = ""
     private var improvedText: String = ""
     private var lastCaptureWasTruncated: Bool = false
+    private var askAIResponse: String = ""
 
     private func debugLog(_ message: String) {
 #if DEBUG
@@ -41,6 +43,7 @@ class KeyboardViewController: UIInputViewController {
 
         setupKeyboardUI()
         setupImproveWritingView()
+        setupAskAIView()
     }
 
     private func setupKeyboardUI() {
@@ -68,6 +71,7 @@ class KeyboardViewController: UIInputViewController {
         controlsView.spaceButton.addTarget(self, action: #selector(handleHomeSpaceTapped), for: .touchUpInside)
         controlsView.shortenButton.addTarget(self, action: #selector(handleShortenTapped), for: .touchUpInside)
         controlsView.lengthenButton.addTarget(self, action: #selector(handleLengthenTapped), for: .touchUpInside)
+        controlsView.askAIButton.addTarget(self, action: #selector(handleAskAIButtonTapped), for: .touchUpInside)
     }
 
     private func setupImproveWritingView() {
@@ -76,10 +80,10 @@ class KeyboardViewController: UIInputViewController {
         view.addSubview(improveWritingView)
 
         NSLayoutConstraint.activate([
-            improveWritingView.topAnchor.constraint(equalTo: view.topAnchor, constant: 6),
-            improveWritingView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),
-            improveWritingView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -6),
-            improveWritingView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -6)
+            improveWritingView.topAnchor.constraint(equalTo: view.topAnchor),
+            improveWritingView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            improveWritingView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            improveWritingView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
 
         improveWritingView.replaceButton.addTarget(self, action: #selector(handleReplaceTapped), for: .touchUpInside)
@@ -87,6 +91,22 @@ class KeyboardViewController: UIInputViewController {
         improveWritingView.refreshButton.addTarget(self, action: #selector(handleRefreshTapped), for: .touchUpInside)
         improveWritingView.copyButton.addTarget(self, action: #selector(handleCopyTapped), for: .touchUpInside)
         improveWritingView.backButton.addTarget(self, action: #selector(handleBackTapped), for: .touchUpInside)
+    }
+
+    private func setupAskAIView() {
+        askAIView.translatesAutoresizingMaskIntoConstraints = false
+        askAIView.isHidden = true
+        view.addSubview(askAIView)
+
+        NSLayoutConstraint.activate([
+            askAIView.topAnchor.constraint(equalTo: view.topAnchor),
+            askAIView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            askAIView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            askAIView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+
+        askAIView.askButton.addTarget(self, action: #selector(handleAskQuestionTapped), for: .touchUpInside)
+        askAIView.backButton.addTarget(self, action: #selector(handleAskAIBackTapped), for: .touchUpInside)
     }
 
     @objc private func handleImproveButtonTapped() {
@@ -102,7 +122,6 @@ class KeyboardViewController: UIInputViewController {
     }
 
     private func runImprovementFlow(kind: OpenAIService.PromptKind) {
-        let proxy = textDocumentProxy
         // Budgets élevés: viser ~10k tokens d'entrée (~40k caractères)
         let targetTokenBudget = 10_000
         let approxCharsPerToken = 4
@@ -113,6 +132,7 @@ class KeyboardViewController: UIInputViewController {
         case .improve: controlsView.setTileLoading(.improve, loading: true)
         case .shorten: controlsView.setTileLoading(.shorten, loading: true)
         case .lengthen: controlsView.setTileLoading(.lengthen, loading: true)
+        case .askAI: break // askAI doesn't use this flow
         }
         improveWritingView.refreshButton.isEnabled = false
         controlsView.statusLabel.text = "Récupération du texte…"
@@ -143,6 +163,7 @@ class KeyboardViewController: UIInputViewController {
                         case .improve: self.controlsView.setTileLoading(.improve, loading: false)
                         case .shorten: self.controlsView.setTileLoading(.shorten, loading: false)
                         case .lengthen: self.controlsView.setTileLoading(.lengthen, loading: false)
+                        case .askAI: break
                         }
                         self.improveWritingView.refreshButton.isEnabled = true
                         self.hapticError()
@@ -153,6 +174,7 @@ class KeyboardViewController: UIInputViewController {
                         case .improve: self.controlsView.shake(tile: .improve)
                         case .shorten: self.controlsView.shake(tile: .shorten)
                         case .lengthen: self.controlsView.shake(tile: .lengthen)
+                        case .askAI: break
                         }
                         #endif
                         return
@@ -165,6 +187,7 @@ class KeyboardViewController: UIInputViewController {
                     case .improve: header = "Improved Text"
                     case .shorten: header = "Shortened Text"
                     case .lengthen: header = "Lengthened Text"
+                    case .askAI: header = "AI Response"
                     }
                     self.improveWritingView.setHeaderTitle(header)
                     self.controlsView.statusLabel.text = "Improving your text..."
@@ -174,6 +197,7 @@ class KeyboardViewController: UIInputViewController {
                     case .improve: self.controlsView.setTileLoading(.improve, loading: false)
                     case .shorten: self.controlsView.setTileLoading(.shorten, loading: false)
                     case .lengthen: self.controlsView.setTileLoading(.lengthen, loading: false)
+                    case .askAI: break
                     }
                     self.improveWritingView.refreshButton.isEnabled = true
 
@@ -195,6 +219,7 @@ class KeyboardViewController: UIInputViewController {
                                     case .improve: self.controlsView.setTileLoading(.improve, loading: false)
                                     case .shorten: self.controlsView.setTileLoading(.shorten, loading: false)
                                     case .lengthen: self.controlsView.setTileLoading(.lengthen, loading: false)
+                                    case .askAI: break
                                     }
                                     self.improveWritingView.refreshButton.isEnabled = true
                                     self.hapticError()
@@ -493,5 +518,83 @@ class KeyboardViewController: UIInputViewController {
 
     @objc private func handleHomeSpaceTapped() {
         textDocumentProxy.insertText(" ")
+    }
+
+    // MARK: - Ask AI Actions
+
+    @objc private func handleAskAIButtonTapped() {
+        hapticSelection()
+        showAskAIView()
+    }
+
+    @objc private func handleAskQuestionTapped() {
+        let question = askAIView.getQuestion()
+        guard !question.isEmpty else {
+            hapticError()
+            showStatus("Please enter a question", isError: true)
+            return
+        }
+
+        hapticSelection()
+
+        // Hide input view and show response view
+        hideAskAIView()
+
+        // Set original text as the question
+        originalText = question
+        improvedText = ""
+
+        // Show the response container
+        improveWritingView.setHeaderTitle("AI Response")
+        showPreviewContainer()
+
+        // Call OpenAI
+        OpenAIService.shared.improveText(question, kind: .askAI, onStream: { [weak self] streamedText in
+            DispatchQueue.main.async {
+                self?.improveWritingView.setText(streamedText)
+                self?.improvedText = streamedText
+            }
+        }, completion: { [weak self] result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let responseText):
+                    self?.improvedText = responseText
+                    self?.improveWritingView.setText(responseText)
+                case .failure(let error):
+                    self?.hidePreview()
+                    self?.hapticError()
+                    self?.showStatus("Error: \(error.localizedDescription)", isError: true)
+                }
+            }
+        })
+    }
+
+    @objc private func handleAskAIBackTapped() {
+        hapticSelection()
+        hideAskAIView()
+    }
+
+    private func showAskAIView() {
+        controlsView.isHidden = true
+        controlsView.statusLabel.isHidden = true
+        controlsView.statusLabel.text = ""
+
+        askAIView.clearQuestion()
+        askAIView.isHidden = false
+        askAIView.alpha = 0
+
+        UIView.animate(withDuration: 0.3) {
+            self.askAIView.alpha = 1
+        }
+    }
+
+    private func hideAskAIView() {
+        UIView.animate(withDuration: 0.3, animations: {
+            self.askAIView.alpha = 0
+        }) { _ in
+            self.askAIView.isHidden = true
+            self.controlsView.isHidden = false
+            self.controlsView.statusLabel.isHidden = false
+        }
     }
 }

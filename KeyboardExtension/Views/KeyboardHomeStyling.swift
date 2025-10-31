@@ -95,5 +95,6 @@ struct KeyboardHomeStyling {
         }
         styleTile(controls.shortenButton, title: "Make Shorter", symbol: "minus.circle")
         styleTile(controls.lengthenButton, title: "Make Longer", symbol: "plus.circle")
+        styleTile(controls.askAIButton, title: "Ask AI", symbol: "questionmark.circle")
     }
 }
