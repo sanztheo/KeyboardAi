@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="img/banner.png" alt="KeyboardAi banner" width="100%" />
+
 # KeyboardAi — Clavier iOS qui améliore votre écriture avec l’IA
 
 Améliorez grammaire, style et clarté en un tap — directement depuis un clavier iOS. Propulsé par OpenAI `gpt-4o-mini`, streaming en temps réel et respect de la confidentialité.
