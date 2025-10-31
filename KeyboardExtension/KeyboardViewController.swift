@@ -56,6 +56,8 @@ class KeyboardViewController: UIInputViewController {
         controlsView.deleteButton.addTarget(self, action: #selector(handleHomeDeleteTapped), for: .touchUpInside)
         controlsView.returnButton.addTarget(self, action: #selector(handleHomeReturnTapped), for: .touchUpInside)
         controlsView.spaceButton.addTarget(self, action: #selector(handleHomeSpaceTapped), for: .touchUpInside)
+        controlsView.shortenButton.addTarget(self, action: #selector(handleShortenTapped), for: .touchUpInside)
+        controlsView.lengthenButton.addTarget(self, action: #selector(handleLengthenTapped), for: .touchUpInside)
     }
 
     private func setupImproveWritingView() {
@@ -78,14 +80,31 @@ class KeyboardViewController: UIInputViewController {
     }
 
     @objc private func handleImproveButtonTapped() {
+        runImprovementFlow(kind: .improve)
+    }
+
+    @objc private func handleShortenTapped() {
+        runImprovementFlow(kind: .shorten)
+    }
+
+    @objc private func handleLengthenTapped() {
+        runImprovementFlow(kind: .lengthen)
+    }
+
+    private func runImprovementFlow(kind: OpenAIService.PromptKind) {
         let proxy = textDocumentProxy
         // Budgets élevés: viser ~10k tokens d'entrée (~40k caractères)
         let targetTokenBudget = 10_000
         let approxCharsPerToken = 4
         let inputCharBudget = targetTokenBudget * approxCharsPerToken
 
-        // 0) UI: démarrer le chargement pendant la récupération intégrale (même logique que "Tout")
-        setLoading(true)
+        // 0) UI: démarrer le chargement sur la tuile concernée
+        switch kind {
+        case .improve: controlsView.setTileLoading(.improve, loading: true)
+        case .shorten: controlsView.setTileLoading(.shorten, loading: true)
+        case .lengthen: controlsView.setTileLoading(.lengthen, loading: true)
+        }
+        improveWritingView.refreshButton.isEnabled = false
         controlsView.statusLabel.text = "Récupération du texte…"
 
         // 1) Lancer l'animation VISUELLE identique au bouton "Tout"
@@ -118,9 +137,15 @@ class KeyboardViewController: UIInputViewController {
                     self.originalText = capturedText
                     self.controlsView.statusLabel.text = "Improving your text..."
                     self.showPreviewContainer()
-                    self.setLoading(false)
+                    // Arrêter l'état de chargement sur la tuile
+                    switch kind {
+                    case .improve: self.controlsView.setTileLoading(.improve, loading: false)
+                    case .shorten: self.controlsView.setTileLoading(.shorten, loading: false)
+                    case .lengthen: self.controlsView.setTileLoading(.lengthen, loading: false)
+                    }
+                    self.improveWritingView.refreshButton.isEnabled = true
 
-                    OpenAIService.shared.improveText(capturedText, onStream: { [weak self] streamedText in
+                    OpenAIService.shared.improveText(capturedText, kind: kind, onStream: { [weak self] streamedText in
                         DispatchQueue.main.async { self?.improveWritingView.setText(streamedText); self?.improvedText = streamedText }
                     }, completion: { [weak self] result in
                         DispatchQueue.main.async {
@@ -133,6 +158,14 @@ class KeyboardViewController: UIInputViewController {
                                 self?.hidePreview()
                                 self?.lastCaptureWasTruncated = false
                                 self?.showStatus("Error: \(error.localizedDescription)", isError: true)
+                                if let self = self {
+                                    switch kind {
+                                    case .improve: self.controlsView.setTileLoading(.improve, loading: false)
+                                    case .shorten: self.controlsView.setTileLoading(.shorten, loading: false)
+                                    case .lengthen: self.controlsView.setTileLoading(.lengthen, loading: false)
+                                    }
+                                    self.improveWritingView.refreshButton.isEnabled = true
+                                }
                             }
                         }
                     })

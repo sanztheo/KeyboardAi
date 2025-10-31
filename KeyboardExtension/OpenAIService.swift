@@ -15,29 +15,17 @@ class OpenAIService {
 
     private init() {}
 
-    private let systemPrompt = """
-You are a writing improvement assistant. Your task is to improve the given text by fixing grammar, spelling, clarity, and style while maintaining the original meaning and tone.
+    enum PromptKind { case improve, shorten, lengthen }
 
-Return ONLY the improved text without any explanations, introductions, or additional comments.
+    private func prompt(for kind: PromptKind) -> String {
+        switch kind {
+        case .improve: return ImprovePrompt.text
+        case .shorten: return ShortenPrompt.text
+        case .lengthen: return LengthenPrompt.text
+        }
+    }
 
-Examples:
-
-Input: "i want go to store today maybe buy some thing"
-Output: "I want to go to the store today to maybe buy something."
-
-Input: "The report wasnt finished because there was to much work and not enought time for complete it properly"
-Output: "The report wasn't finished because there was too much work and not enough time to complete it properly."
-
-Input: "Hey whats up? i didnt saw you yesterday at the party were you sick or something"
-Output: "Hey, what's up? I didn't see you yesterday at the party. Were you sick or something?"
-
-Input: "The meetign will be held on monday at 3pm in the conference room on the second floor"
-Output: "The meeting will be held on Monday at 3 PM in the conference room on the second floor."
-
-Now improve this text:
-"""
-
-    func improveText(_ text: String, onStream: @escaping (String) -> Void, completion: @escaping (Result<String, Error>) -> Void) {
+    func improveText(_ text: String, kind: PromptKind = .improve, onStream: @escaping (String) -> Void, completion: @escaping (Result<String, Error>) -> Void) {
         guard let apiKey = KeychainHelper.shared.getAPIKey(), !apiKey.isEmpty else {
             completion(.failure(NSError(domain: "OpenAI", code: 401, userInfo: [NSLocalizedDescriptionKey: "API key not configured. Please add your OpenAI API key in the app settings."])))
             return
@@ -57,7 +45,7 @@ Now improve this text:
         let requestBody: [String: Any] = [
             "model": model,
             "messages": [
-                ["role": "system", "content": systemPrompt],
+                ["role": "system", "content": prompt(for: kind)],
                 ["role": "user", "content": text]
             ],
             "temperature": 0.3,

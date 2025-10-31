@@ -9,6 +9,20 @@ final class KeyboardControlsView: UIView {
         return button
     }()
 
+    let shortenButton: UIButton = {
+        let b = UIButton(type: .system)
+        b.layer.cornerRadius = 12
+        b.translatesAutoresizingMaskIntoConstraints = false
+        return b
+    }()
+
+    let lengthenButton: UIButton = {
+        let b = UIButton(type: .system)
+        b.layer.cornerRadius = 12
+        b.translatesAutoresizingMaskIntoConstraints = false
+        return b
+    }()
+
     let loadingIndicator: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView(style: .medium)
         indicator.color = .gray
@@ -50,6 +64,15 @@ final class KeyboardControlsView: UIView {
         addSubview(loadingIndicator)
         addSubview(statusLabel)
 
+        // Second row with two tiles
+        let secondaryRow = UIStackView(arrangedSubviews: [shortenButton, lengthenButton])
+        secondaryRow.axis = .horizontal
+        secondaryRow.distribution = .fillEqually
+        secondaryRow.alignment = .fill
+        secondaryRow.spacing = 8
+        secondaryRow.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(secondaryRow)
+
         bottomBar.translatesAutoresizingMaskIntoConstraints = false
         addSubview(bottomBar)
 
@@ -62,7 +85,12 @@ final class KeyboardControlsView: UIView {
             loadingIndicator.centerXAnchor.constraint(equalTo: improveButton.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: improveButton.centerYAnchor),
 
-            statusLabel.topAnchor.constraint(equalTo: improveButton.bottomAnchor, constant: 10),
+            secondaryRow.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
+            secondaryRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
+            secondaryRow.topAnchor.constraint(equalTo: improveButton.bottomAnchor, constant: 10),
+            secondaryRow.heightAnchor.constraint(equalToConstant: 44),
+
+            statusLabel.topAnchor.constraint(equalTo: secondaryRow.bottomAnchor, constant: 10),
             statusLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             statusLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
 
@@ -74,29 +102,54 @@ final class KeyboardControlsView: UIView {
     }
 
     // MARK: - Public UI helpers
-    func setImproving(_ loading: Bool) {
+    enum Tile { case improve, shorten, lengthen }
+
+    private func button(for tile: Tile) -> UIButton {
+        switch tile {
+        case .improve: return improveButton
+        case .shorten: return shortenButton
+        case .lengthen: return lengthenButton
+        }
+    }
+
+    private func titleAndSymbol(for tile: Tile) -> (String, String) {
+        switch tile {
+        case .improve: return ("Improve Writing", "sparkles")
+        case .shorten: return ("Make Shorter", "minus.circle")
+        case .lengthen: return ("Make Longer", "plus.circle")
+        }
+    }
+
+    func setTileLoading(_ tile: Tile, loading: Bool) {
+        let btn = button(for: tile)
+        let (title, symbol) = titleAndSymbol(for: tile)
         if loading {
-            if #available(iOS 15.0, *), var cfg = improveButton.configuration {
+            if #available(iOS 15.0, *), var cfg = btn.configuration {
                 cfg.showsActivityIndicator = true
                 cfg.image = nil
                 cfg.title = ""
-                improveButton.configuration = cfg
+                btn.configuration = cfg
             } else {
-                improveButton.setTitle("", for: .normal)
-                loadingIndicator.startAnimating()
+                btn.setTitle("", for: .normal)
+                if btn === improveButton { loadingIndicator.startAnimating() }
             }
-            improveButton.isEnabled = false
+            btn.isEnabled = false
         } else {
-            if #available(iOS 15.0, *), var cfg = improveButton.configuration {
+            if #available(iOS 15.0, *), var cfg = btn.configuration {
                 cfg.showsActivityIndicator = false
-                cfg.image = UIImage(systemName: "sparkles")
-                cfg.title = "Improve Writing"
-                improveButton.configuration = cfg
+                cfg.image = UIImage(systemName: symbol)
+                cfg.title = title
+                btn.configuration = cfg
             } else {
-                improveButton.setTitle("✨ Improve Writing", for: .normal)
-                loadingIndicator.stopAnimating()
+                // Fallback simple
+                let prefix = tile == .improve ? "✨ " : ""
+                btn.setTitle(prefix + title, for: .normal)
+                if btn === improveButton { loadingIndicator.stopAnimating() }
             }
-            improveButton.isEnabled = true
+            btn.isEnabled = true
         }
     }
+
+    // Backwards compatibility helper
+    func setImproving(_ loading: Bool) { setTileLoading(.improve, loading: loading) }
 }

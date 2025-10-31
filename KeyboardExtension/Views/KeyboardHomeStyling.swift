@@ -66,5 +66,34 @@ struct KeyboardHomeStyling {
 
         styleSmall(controls.deleteButton)
         styleSmall(controls.returnButton)
+
+        // Secondary tiles (shorten/lengthen)
+        func styleTile(_ btn: UIButton, title: String, symbol: String) {
+            if #available(iOS 15.0, *) {
+                var c = UIButton.Configuration.filled()
+                c.baseBackgroundColor = KBColor.tileBG
+                c.baseForegroundColor = KBColor.midGreyText
+                c.cornerStyle = .large
+                c.image = UIImage(systemName: symbol)
+                c.imagePlacement = .leading
+                c.imagePadding = 8
+                c.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 12, bottom: 10, trailing: 12)
+                var attrs = AttributeContainer(); attrs.font = .boldSystemFont(ofSize: 15)
+                c.attributedTitle = AttributedString(title, attributes: attrs)
+                btn.configuration = c
+                btn.tintColor = KBColor.midGreyText
+            } else {
+                btn.backgroundColor = KBColor.tileBG
+                btn.setTitle(title, for: .normal)
+                btn.setTitleColor(KBColor.midGreyText, for: .normal)
+                btn.titleLabel?.font = .boldSystemFont(ofSize: 15)
+                btn.setImage(UIImage(systemName: symbol), for: .normal)
+                btn.tintColor = KBColor.midGreyText
+                btn.imageEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 4)
+                btn.contentEdgeInsets = UIEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
+            }
+        }
+        styleTile(controls.shortenButton, title: "Make Shorter", symbol: "minus.circle")
+        styleTile(controls.lengthenButton, title: "Make Longer", symbol: "plus.circle")
     }
 }
