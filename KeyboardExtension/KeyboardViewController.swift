@@ -68,6 +68,7 @@ class KeyboardViewController: UIInputViewController {
         improveWritingView.insertButton.addTarget(self, action: #selector(handleInsertTapped), for: .touchUpInside)
         improveWritingView.refreshButton.addTarget(self, action: #selector(handleRefreshTapped), for: .touchUpInside)
         improveWritingView.copyButton.addTarget(self, action: #selector(handleCopyTapped), for: .touchUpInside)
+        improveWritingView.backButton.addTarget(self, action: #selector(handleBackTapped), for: .touchUpInside)
     }
 
     @objc private func handleImproveButtonTapped() {
@@ -373,6 +374,12 @@ class KeyboardViewController: UIInputViewController {
             self.controlsView.isHidden = false
             self.controlsView.statusLabel.isHidden = false
         }
+    }
+
+    @objc private func handleBackTapped() {
+        // Retour à l'écran principal du clavier
+        hidePreview()
+        showStatus("", isError: false)
     }
 
     private func setLoading(_ loading: Bool) {

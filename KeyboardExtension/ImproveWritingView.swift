@@ -19,6 +19,20 @@ final class ImproveWritingView: UIView {
     }()
 
     // Action buttons
+    let backButton: UIButton = {
+        let button = UIButton(type: .system)
+        if let img = UIImage(systemName: "chevron.left") {
+            button.setImage(img, for: .normal)
+        } else {
+            button.setTitle("◀", for: .normal)
+        }
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.tintColor = UIColor(white: 0.25, alpha: 1)
+        button.backgroundColor = UIColor(red: 0xD5/255.0, green: 0xD6/255.0, blue: 0xD8/255.0, alpha: 1.0)
+        button.layer.cornerRadius = 14
+        button.contentEdgeInsets = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
+        return button
+    }()
     let refreshButton: UIButton = {
         let button = UIButton(type: .system)
         button.tintColor = .label
@@ -28,6 +42,8 @@ final class ImproveWritingView: UIView {
         } else {
             button.setTitle("↻", for: .normal)
         }
+        button.imageView?.contentMode = .scaleAspectFit
+        button.contentEdgeInsets = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
         return button
     }()
 
@@ -115,6 +131,7 @@ final class ImproveWritingView: UIView {
         header.isOpaque = false
 
         addSubview(header)
+        header.addSubview(backButton)
         header.addSubview(titleLabel)
         header.addSubview(refreshButton)
         addSubview(textView)
@@ -133,11 +150,11 @@ final class ImproveWritingView: UIView {
         replaceButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
         insertButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
         refreshButton.tintColor = UIColor(
-            red: CGFloat(0xC8) / 255.0,
-            green: CGFloat(0xC9) / 255.0,
-            blue: CGFloat(0xCD) / 255.0,
+            red: CGFloat(0x6C) / 255.0,
+            green: CGFloat(0x6C) / 255.0,
+            blue: CGFloat(0x6C) / 255.0,
             alpha: 1.0
-        ) // #C8C9CD
+        ) // #6C6C6C
 
         // Priorités pour que Insert s'étire et Replace garde sa taille
         copyButton.setContentHuggingPriority(.required, for: .horizontal)
@@ -152,14 +169,20 @@ final class ImproveWritingView: UIView {
             header.topAnchor.constraint(equalTo: topAnchor, constant: 10),
             header.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             header.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-            header.heightAnchor.constraint(equalToConstant: 24),
+            header.heightAnchor.constraint(equalToConstant: 32),
 
-            titleLabel.leadingAnchor.constraint(equalTo: header.leadingAnchor),
+            backButton.leadingAnchor.constraint(equalTo: header.leadingAnchor),
+            backButton.centerYAnchor.constraint(equalTo: header.centerYAnchor),
+            backButton.heightAnchor.constraint(equalToConstant: 28),
+            backButton.widthAnchor.constraint(equalTo: backButton.heightAnchor),
+
+            titleLabel.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 8),
             titleLabel.centerYAnchor.constraint(equalTo: header.centerYAnchor),
             refreshButton.trailingAnchor.constraint(equalTo: header.trailingAnchor),
             refreshButton.centerYAnchor.constraint(equalTo: header.centerYAnchor),
-            refreshButton.widthAnchor.constraint(equalToConstant: 24),
-            refreshButton.heightAnchor.constraint(equalToConstant: 24),
+            refreshButton.heightAnchor.constraint(equalToConstant: 28),
+            // Keep button perfectly square regardless of layout changes
+            refreshButton.widthAnchor.constraint(equalTo: refreshButton.heightAnchor),
 
             textView.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 10),
             textView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
