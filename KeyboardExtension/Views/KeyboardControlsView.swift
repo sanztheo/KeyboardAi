@@ -96,10 +96,9 @@ final class KeyboardControlsView: UIView {
         bottomRow.addArrangedSubview(UIView()) // placeholder to keep grid form
 
         // Then set size constraints (now they share a common ancestor)
-        let tileWidthMultiplier: CGFloat = 0.52 // ~52% of visible width to show 2 cols + peek
         [improveButton, shortenButton, lengthenButton].forEach { btn in
-            btn.widthAnchor.constraint(equalTo: tileScrollView.frameLayoutGuide.widthAnchor, multiplier: tileWidthMultiplier).isActive = true
-            btn.heightAnchor.constraint(equalToConstant: 69).isActive = true
+            btn.widthAnchor.constraint(equalTo: tileScrollView.frameLayoutGuide.widthAnchor, multiplier: KBLayout.tileWidthMultiplier).isActive = true
+            btn.heightAnchor.constraint(equalToConstant: KBLayout.tileHeight).isActive = true
         }
 
         addSubview(loadingIndicator)
@@ -112,7 +111,7 @@ final class KeyboardControlsView: UIView {
             tileScrollView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             tileScrollView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
             tileScrollView.topAnchor.constraint(equalTo: topAnchor, constant: 15),
-            tileScrollView.heightAnchor.constraint(equalToConstant: 150),
+            tileScrollView.heightAnchor.constraint(equalToConstant: KBLayout.gridHeight),
 
             content.leadingAnchor.constraint(equalTo: tileScrollView.contentLayoutGuide.leadingAnchor),
             content.trailingAnchor.constraint(equalTo: tileScrollView.contentLayoutGuide.trailingAnchor),
@@ -123,12 +122,12 @@ final class KeyboardControlsView: UIView {
             topRow.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             topRow.trailingAnchor.constraint(equalTo: content.trailingAnchor),
             topRow.topAnchor.constraint(equalTo: content.topAnchor),
-            topRow.heightAnchor.constraint(equalToConstant: 69),
+            topRow.heightAnchor.constraint(equalToConstant: KBLayout.tileHeight),
 
             bottomRow.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             bottomRow.trailingAnchor.constraint(equalTo: content.trailingAnchor),
             bottomRow.topAnchor.constraint(equalTo: topRow.bottomAnchor, constant: 8),
-            bottomRow.heightAnchor.constraint(equalToConstant: 69),
+            bottomRow.heightAnchor.constraint(equalToConstant: KBLayout.tileHeight),
             bottomRow.bottomAnchor.constraint(equalTo: content.bottomAnchor),
 
             loadingIndicator.centerXAnchor.constraint(equalTo: improveButton.centerXAnchor),
