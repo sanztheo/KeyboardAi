@@ -17,14 +17,14 @@ struct KeyboardHomeStyling {
             config.imagePadding = 8
             config.imagePlacement = .leading
             config.contentInsets = NSDirectionalEdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16)
-            config.baseBackgroundColor = KBColor.tileBG
-            config.baseForegroundColor = KBColor.midGreyText
+            config.baseBackgroundColor = .white
+            config.baseForegroundColor = .black
             config.cornerStyle = .large
             // Neutralize highlight/hover tint
-            config.background.backgroundColor = KBColor.tileBG
+            config.background.backgroundColor = .white
             config.background.strokeColor = .clear
             config.background.strokeWidth = 0
-            config.background.backgroundColorTransformer = UIConfigurationColorTransformer { _ in KBColor.tileBG }
+            config.background.backgroundColorTransformer = UIConfigurationColorTransformer { _ in .white }
             // Bold title
             var attrs = AttributeContainer()
             attrs.font = .boldSystemFont(ofSize: 16)
@@ -32,35 +32,35 @@ struct KeyboardHomeStyling {
             b.configuration = config
             b.setTitle("Improve Writing", for: .normal)
             // Also explicitly set title color for consistency
-            b.setTitleColor(KBColor.midGreyText, for: .normal)
-            b.tintColor = KBColor.midGreyText
+            b.setTitleColor(.black, for: .normal)
+            b.tintColor = .black
             b.adjustsImageWhenHighlighted = false
         } else {
-            b.backgroundColor = KBColor.tileBG
+            b.backgroundColor = .white
             b.setTitle("Improve Writing", for: .normal)
-            b.setTitleColor(KBColor.midGreyText, for: .normal)
+            b.setTitleColor(.black, for: .normal)
             b.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
             b.setImage(UIImage(systemName: "sparkles"), for: .normal)
-            b.tintColor = KBColor.midGreyText
+            b.tintColor = .black
             b.imageEdgeInsets = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 8)
             b.titleEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 0)
             b.contentEdgeInsets = UIEdgeInsets(top: 14, left: 12, bottom: 14, right: 16)
         }
 
         // Status color on light background
-        controls.statusLabel.textColor = KBColor.midGreyText
-        controls.loadingIndicator.color = KBColor.midGreyText
+        controls.statusLabel.textColor = .black
+        controls.loadingIndicator.color = .black
 
         // Small buttons: match Insert/Copy style
         func styleSmall(_ b: UIButton) {
-            b.backgroundColor = KBColor.tileBG
-            b.tintColor = KBColor.midGreyText
+            b.backgroundColor = .white
+            b.tintColor = .black
             b.layer.cornerRadius = 12
             b.contentEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
         }
         // Space button has text
-        controls.spaceButton.backgroundColor = KBColor.tileBG
-        controls.spaceButton.setTitleColor(KBColor.midGreyText, for: .normal)
+        controls.spaceButton.backgroundColor = .white
+        controls.spaceButton.setTitleColor(.black, for: .normal)
         controls.spaceButton.layer.cornerRadius = 12
         controls.spaceButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
 
@@ -71,8 +71,8 @@ struct KeyboardHomeStyling {
         func styleTile(_ btn: UIButton, title: String, symbol: String) {
             if #available(iOS 15.0, *) {
                 var c = UIButton.Configuration.filled()
-                c.baseBackgroundColor = KBColor.tileBG
-                c.baseForegroundColor = KBColor.midGreyText
+                c.baseBackgroundColor = .white
+                c.baseForegroundColor = .black
                 c.cornerStyle = .large
                 c.image = UIImage(systemName: symbol)
                 c.imagePlacement = .leading
@@ -81,14 +81,14 @@ struct KeyboardHomeStyling {
                 var attrs = AttributeContainer(); attrs.font = .boldSystemFont(ofSize: 15)
                 c.attributedTitle = AttributedString(title, attributes: attrs)
                 btn.configuration = c
-                btn.tintColor = KBColor.midGreyText
+                btn.tintColor = .black
             } else {
-                btn.backgroundColor = KBColor.tileBG
+                btn.backgroundColor = .white
                 btn.setTitle(title, for: .normal)
-                btn.setTitleColor(KBColor.midGreyText, for: .normal)
+                btn.setTitleColor(.black, for: .normal)
                 btn.titleLabel?.font = .boldSystemFont(ofSize: 15)
                 btn.setImage(UIImage(systemName: symbol), for: .normal)
-                btn.tintColor = KBColor.midGreyText
+                btn.tintColor = .black
                 btn.imageEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 4)
                 btn.contentEdgeInsets = UIEdgeInsets(top: 10, left: 12, bottom: 10, right: 12)
             }

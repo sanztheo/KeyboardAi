@@ -60,37 +60,81 @@ final class KeyboardControlsView: UIView {
         backgroundColor = .clear
         isOpaque = false
 
-        addSubview(improveButton)
+        // Scrollable 2-row grid
+        let tileScrollView = UIScrollView()
+        tileScrollView.showsHorizontalScrollIndicator = false
+        tileScrollView.alwaysBounceHorizontal = true
+        tileScrollView.alwaysBounceVertical = false
+        tileScrollView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(tileScrollView)
+
+        let content = UIView()
+        content.translatesAutoresizingMaskIntoConstraints = false
+        tileScrollView.addSubview(content)
+
+        let topRow = UIStackView()
+        topRow.axis = .horizontal
+        topRow.alignment = .fill
+        topRow.distribution = .fill
+        topRow.spacing = 8
+        topRow.translatesAutoresizingMaskIntoConstraints = false
+
+        let bottomRow = UIStackView()
+        bottomRow.axis = .horizontal
+        bottomRow.alignment = .fill
+        bottomRow.distribution = .fill
+        bottomRow.spacing = 8
+        bottomRow.translatesAutoresizingMaskIntoConstraints = false
+
+        content.addSubview(topRow)
+        content.addSubview(bottomRow)
+
+        // Add tiles into columns (width fixed for predictable scroll)
+        improveButton.widthAnchor.constraint(equalToConstant: 220).isActive = true
+        improveButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        shortenButton.widthAnchor.constraint(equalToConstant: 220).isActive = true
+        shortenButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        lengthenButton.widthAnchor.constraint(equalToConstant: 220).isActive = true
+        lengthenButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
+
+        topRow.addArrangedSubview(improveButton)
+        topRow.addArrangedSubview(lengthenButton)
+        bottomRow.addArrangedSubview(shortenButton)
+        bottomRow.addArrangedSubview(UIView()) // placeholder to keep grid form
+
         addSubview(loadingIndicator)
         addSubview(statusLabel)
-
-        // Second row with two tiles
-        let secondaryRow = UIStackView(arrangedSubviews: [shortenButton, lengthenButton])
-        secondaryRow.axis = .horizontal
-        secondaryRow.distribution = .fillEqually
-        secondaryRow.alignment = .fill
-        secondaryRow.spacing = 8
-        secondaryRow.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(secondaryRow)
 
         bottomBar.translatesAutoresizingMaskIntoConstraints = false
         addSubview(bottomBar)
 
         NSLayoutConstraint.activate([
-            improveButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
-            improveButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-            improveButton.topAnchor.constraint(equalTo: topAnchor, constant: 15),
-            improveButton.heightAnchor.constraint(equalToConstant: 50),
+            tileScrollView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
+            tileScrollView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
+            tileScrollView.topAnchor.constraint(equalTo: topAnchor, constant: 15),
+            tileScrollView.heightAnchor.constraint(equalToConstant: 108),
+
+            content.leadingAnchor.constraint(equalTo: tileScrollView.contentLayoutGuide.leadingAnchor),
+            content.trailingAnchor.constraint(equalTo: tileScrollView.contentLayoutGuide.trailingAnchor),
+            content.topAnchor.constraint(equalTo: tileScrollView.contentLayoutGuide.topAnchor),
+            content.bottomAnchor.constraint(equalTo: tileScrollView.contentLayoutGuide.bottomAnchor),
+            content.heightAnchor.constraint(equalTo: tileScrollView.frameLayoutGuide.heightAnchor),
+
+            topRow.leadingAnchor.constraint(equalTo: content.leadingAnchor),
+            topRow.trailingAnchor.constraint(equalTo: content.trailingAnchor),
+            topRow.topAnchor.constraint(equalTo: content.topAnchor),
+            topRow.heightAnchor.constraint(equalToConstant: 50),
+
+            bottomRow.leadingAnchor.constraint(equalTo: content.leadingAnchor),
+            bottomRow.trailingAnchor.constraint(equalTo: content.trailingAnchor),
+            bottomRow.topAnchor.constraint(equalTo: topRow.bottomAnchor, constant: 8),
+            bottomRow.heightAnchor.constraint(equalToConstant: 50),
+            bottomRow.bottomAnchor.constraint(equalTo: content.bottomAnchor),
 
             loadingIndicator.centerXAnchor.constraint(equalTo: improveButton.centerXAnchor),
             loadingIndicator.centerYAnchor.constraint(equalTo: improveButton.centerYAnchor),
 
-            secondaryRow.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
-            secondaryRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-            secondaryRow.topAnchor.constraint(equalTo: improveButton.bottomAnchor, constant: 10),
-            secondaryRow.heightAnchor.constraint(equalToConstant: 44),
-
-            statusLabel.topAnchor.constraint(equalTo: secondaryRow.bottomAnchor, constant: 10),
+            statusLabel.topAnchor.constraint(equalTo: tileScrollView.bottomAnchor, constant: 10),
             statusLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             statusLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
 

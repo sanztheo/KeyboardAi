@@ -135,6 +135,13 @@ class KeyboardViewController: UIInputViewController {
 
                     self.lastCaptureWasTruncated = truncated
                     self.originalText = capturedText
+                    let header: String
+                    switch kind {
+                    case .improve: header = "Improved Text"
+                    case .shorten: header = "Shortened Text"
+                    case .lengthen: header = "Lengthened Text"
+                    }
+                    self.improveWritingView.setHeaderTitle(header)
                     self.controlsView.statusLabel.text = "Improving your text..."
                     self.showPreviewContainer()
                     // Arrêter l'état de chargement sur la tuile

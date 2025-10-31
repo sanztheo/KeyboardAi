@@ -245,4 +245,9 @@ final class ImproveWritingView: UIView {
         let key = "spin"
         (refreshButton.imageView?.layer ?? refreshButton.layer).removeAnimation(forKey: key)
     }
+
+    // MARK: - Header helpers
+    func setHeaderTitle(_ title: String) {
+        titleLabel.text = title
+    }
 }
