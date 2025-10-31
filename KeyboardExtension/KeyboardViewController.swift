@@ -391,13 +391,28 @@ class KeyboardViewController: UIInputViewController {
 
     private func setLoading(_ loading: Bool) {
         if loading {
-            controlsView.improveButton.setTitle("", for: .normal)
-            controlsView.loadingIndicator.startAnimating()
+            if #available(iOS 15.0, *), var cfg = controlsView.improveButton.configuration {
+                cfg.showsActivityIndicator = true
+                cfg.image = nil
+                cfg.title = ""
+                controlsView.improveButton.configuration = cfg
+            } else {
+                controlsView.improveButton.setTitle("", for: .normal)
+                controlsView.loadingIndicator.color = KBColor.midGreyText
+                controlsView.loadingIndicator.startAnimating()
+            }
             controlsView.improveButton.isEnabled = false
             improveWritingView.refreshButton.isEnabled = false
         } else {
-            controlsView.improveButton.setTitle("✨ Improve Writing", for: .normal)
-            controlsView.loadingIndicator.stopAnimating()
+            if #available(iOS 15.0, *), var cfg = controlsView.improveButton.configuration {
+                cfg.showsActivityIndicator = false
+                cfg.image = UIImage(systemName: "sparkles")
+                cfg.title = "Improve Writing"
+                controlsView.improveButton.configuration = cfg
+            } else {
+                controlsView.improveButton.setTitle("✨ Improve Writing", for: .normal)
+                controlsView.loadingIndicator.stopAnimating()
+            }
             controlsView.improveButton.isEnabled = true
             improveWritingView.refreshButton.isEnabled = true
         }

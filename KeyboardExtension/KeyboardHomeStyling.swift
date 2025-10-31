@@ -20,8 +20,17 @@ struct KeyboardHomeStyling {
             config.baseBackgroundColor = KBColor.tileBG
             config.baseForegroundColor = KBColor.midGreyText
             config.cornerStyle = .large
+            // Neutralize highlight/hover tint
+            config.background.backgroundColor = KBColor.tileBG
+            config.background.strokeColor = .clear
+            config.background.strokeWidth = 0
+            config.background.backgroundColorTransformer = UIConfigurationColorTransformer { _ in KBColor.tileBG }
             b.configuration = config
             b.setTitle("Improve Writing", for: .normal)
+            // Also explicitly set title color for consistency
+            b.setTitleColor(KBColor.midGreyText, for: .normal)
+            b.tintColor = KBColor.midGreyText
+            b.adjustsImageWhenHighlighted = false
         } else {
             b.backgroundColor = KBColor.tileBG
             b.setTitle("Improve Writing", for: .normal)
