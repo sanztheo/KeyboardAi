@@ -60,7 +60,8 @@ Now improve this text:
                 ["role": "user", "content": text]
             ],
             "temperature": 0.3,
-            "max_tokens": 1000,
+            // Permettre des sorties longues si besoin (jusqu'à ~10k tokens)
+            "max_tokens": 10_000,
             "stream": true
         ]
 

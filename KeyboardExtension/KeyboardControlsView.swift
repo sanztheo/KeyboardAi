@@ -38,6 +38,25 @@ final class KeyboardControlsView: UIView {
         return button
     }()
 
+    let clipboardButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("📋", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 18)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    let selectAllButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Tout", for: .normal)
+        button.backgroundColor = UIColor.systemOrange
+        button.setTitleColor(.white, for: .normal)
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 14)
+        button.layer.cornerRadius = 10
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
@@ -56,6 +75,8 @@ final class KeyboardControlsView: UIView {
         addSubview(loadingIndicator)
         addSubview(statusLabel)
         addSubview(nextKeyboardButton)
+        addSubview(clipboardButton)
+        addSubview(selectAllButton)
 
         NSLayoutConstraint.activate([
             improveButton.centerXAnchor.constraint(equalTo: centerXAnchor),
@@ -73,7 +94,17 @@ final class KeyboardControlsView: UIView {
             nextKeyboardButton.leftAnchor.constraint(equalTo: leftAnchor, constant: 10),
             nextKeyboardButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
             nextKeyboardButton.widthAnchor.constraint(equalToConstant: 40),
-            nextKeyboardButton.heightAnchor.constraint(equalToConstant: 40)
+            nextKeyboardButton.heightAnchor.constraint(equalToConstant: 40),
+
+            clipboardButton.leftAnchor.constraint(equalTo: nextKeyboardButton.rightAnchor, constant: 8),
+            clipboardButton.centerYAnchor.constraint(equalTo: nextKeyboardButton.centerYAnchor),
+            clipboardButton.widthAnchor.constraint(equalToConstant: 40),
+            clipboardButton.heightAnchor.constraint(equalToConstant: 40),
+
+            selectAllButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
+            selectAllButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
+            selectAllButton.widthAnchor.constraint(equalToConstant: 64),
+            selectAllButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
 }

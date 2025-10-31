@@ -14,6 +14,13 @@ class KeyboardViewController: UIInputViewController {
 
     private var originalText: String = ""
     private var improvedText: String = ""
+    private var lastCaptureWasTruncated: Bool = false
+
+    private func debugLog(_ message: String) {
+#if DEBUG
+        print("[KeyboardAI] \(message)")
+#endif
+    }
 
     override func updateViewConstraints() {
         super.updateViewConstraints()
@@ -44,6 +51,8 @@ class KeyboardViewController: UIInputViewController {
 
         controlsView.improveButton.addTarget(self, action: #selector(handleImproveButtonTapped), for: .touchUpInside)
         controlsView.nextKeyboardButton.addTarget(self, action: #selector(handleInputModeList(from:with:)), for: .allTouchEvents)
+        controlsView.selectAllButton.addTarget(self, action: #selector(handleSelectAllTapped), for: .touchUpInside)
+        controlsView.clipboardButton.addTarget(self, action: #selector(handleClipboardTapped), for: .touchUpInside)
     }
 
     private func setupImproveWritingView() {
@@ -66,39 +75,256 @@ class KeyboardViewController: UIInputViewController {
 
     @objc private func handleImproveButtonTapped() {
         let proxy = textDocumentProxy
+        // Budgets élevés: viser ~10k tokens d'entrée (~40k caractères)
+        let targetTokenBudget = 10_000
+        let approxCharsPerToken = 4
+        let inputCharBudget = targetTokenBudget * approxCharsPerToken
 
-        guard let textBefore = proxy.documentContextBeforeInput, !textBefore.isEmpty else {
-            showStatus("No text to improve", isError: true)
-            return
-        }
-
+        // 0) UI: démarrer le chargement pendant la récupération intégrale (même logique que "Tout")
         setLoading(true)
-        controlsView.statusLabel.text = "Improving your text..."
+        controlsView.statusLabel.text = "Récupération du texte…"
 
-        originalText = textBefore
+        // 1) Lancer l'animation VISUELLE identique au bouton "Tout"
+        selectAllTextVisual(maxSteps: 200_000) { [weak self] assembledText, _, _ in
+            guard let self = self else { return }
+            // 2) Une fois l'animation terminée, capturer tout le texte accessible et envoyer à l'IA
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                guard let self = self else { return }
+                var capturedText = assembledText
+                var truncated = false
 
-        showPreviewContainer()
+                if capturedText.count > inputCharBudget {
+                    capturedText = String(capturedText.prefix(inputCharBudget))
+                    truncated = true
+                    self.debugLog("Input truncated to budget: \(inputCharBudget) chars (~\(targetTokenBudget) tokens)")
+                }
 
-        OpenAIService.shared.improveText(textBefore, onStream: { [weak self] streamedText in
-            DispatchQueue.main.async {
-                self?.improveWritingView.setText(streamedText)
-                self?.improvedText = streamedText
-            }
-        }, completion: { [weak self] result in
-            DispatchQueue.main.async {
-                self?.setLoading(false)
+                let trimmed = capturedText.trimmingCharacters(in: .whitespacesAndNewlines)
+                self.debugLog("Captured (visual) length=\(capturedText.count), trimmed=\(trimmed.count), truncated=\(truncated)")
 
-                switch result {
-                case .success(let improvedText):
-                    self?.improvedText = improvedText
-                    self?.improveWritingView.setText(improvedText)
+                DispatchQueue.main.async {
+                    guard !trimmed.isEmpty else {
+                        self.lastCaptureWasTruncated = false
+                        self.setLoading(false)
+                        self.showStatus("No text to improve", isError: true)
+                        return
+                    }
 
-                case .failure(let error):
-                    self?.hidePreview()
-                    self?.showStatus("Error: \(error.localizedDescription)", isError: true)
+                    self.lastCaptureWasTruncated = truncated
+                    self.originalText = capturedText
+                    self.controlsView.statusLabel.text = "Improving your text..."
+                    self.showPreviewContainer()
+                    self.setLoading(false)
+
+                    OpenAIService.shared.improveText(capturedText, onStream: { [weak self] streamedText in
+                        DispatchQueue.main.async { self?.improveWritingView.setText(streamedText); self?.improvedText = streamedText }
+                    }, completion: { [weak self] result in
+                        DispatchQueue.main.async {
+                            switch result {
+                            case .success(let improvedText):
+                                self?.improvedText = improvedText
+                                self?.improveWritingView.setText(improvedText)
+                                self?.debugLog("Improved text length=\(improvedText.count)")
+                            case .failure(let error):
+                                self?.hidePreview()
+                                self?.lastCaptureWasTruncated = false
+                                self?.showStatus("Error: \(error.localizedDescription)", isError: true)
+                            }
+                        }
+                    })
                 }
             }
+        }
+    }
+
+    @objc private func handleSelectAllTapped() {
+        debugLog("SelectAll tapped")
+        // Version visuelle: le curseur se déplace réellement à l'écran
+        selectAllTextVisual()
+    }
+
+    @objc private func handleClipboardTapped() {
+        #if canImport(UIKit)
+        let pb = UIPasteboard.general
+        guard let s = pb.string, !s.isEmpty else {
+            showStatus("Presse-papiers vide", isError: true)
+            return
+        }
+        debugLog("Clipboard text length=\(s.count)")
+        lastCaptureWasTruncated = false
+        originalText = s
+        setLoading(true)
+        controlsView.statusLabel.text = "Improving (clipboard)..."
+        showPreviewContainer()
+        OpenAIService.shared.improveText(s, onStream: { [weak self] streamed in
+            self?.improveWritingView.setText(streamed)
+            self?.improvedText = streamed
+        }, completion: { [weak self] result in
+            switch result {
+            case .success(let final):
+                self?.improvedText = final
+                self?.improveWritingView.setText(final)
+            case .failure(let err):
+                self?.hidePreview()
+                self?.showStatus("Erreur: \(err.localizedDescription)", isError: true)
+            }
+            self?.setLoading(false)
         })
+        #endif
+    }
+
+    /// Best-effort: lit tout le texte accessible via le proxy en
+    /// balayant depuis le bord gauche jusqu'au bord droit exposé par l'app hôte.
+    /// Ne peut pas forcer une véritable sélection système.
+    private func selectAllText() {
+        let r = bestEffortReadAll(step: 256)
+        let prefix = String(r.text.prefix(24))
+        let suffix = String(r.text.suffix(24))
+        debugLog("SelectAll accessible=\(r.totalAccessibleLength), left=\(r.reachedLeftEdge), right=\(r.reachedRightEdge)")
+        debugLog("SelectAll sample prefix='\(prefix)' suffix='\(suffix)'")
+
+        if r.reachedRightEdge {
+            showStatus("Tout accessible: \(r.totalAccessibleLength) caractères", isError: false)
+        } else {
+            showStatus("Contexte limité: \(r.totalAccessibleLength) caractères visibles", isError: true)
+        }
+    }
+
+    /// Déplacement visuel sécurisé pour atteindre le vrai début puis la fin, sans jamais modifier le texte.
+    /// IMPORTANT: n'utilise pas `setMarkedText` pour éviter toute duplication/altération côté hôte.
+    /// - Parameters:
+    ///   - maxSteps: garde-fou anti-boucle
+    ///   - completion: callback (capturedText, totalCount, atEnd) appelé en fin de mouvement
+    private func selectAllTextVisual(maxSteps: Int = 20000, completion: ((_ capturedText: String, _ totalCount: Int, _ atEnd: Bool) -> Void)? = nil) {
+        let proxy = textDocumentProxy
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+
+            // Annuler toute composition active pour éviter que l'hôte insère/duplique.
+            DispatchQueue.main.sync { proxy.unmarkText() }
+
+            // 1) Aller au vrai début par balayages successifs + probe à pas croissant
+            var totalLeft = 0
+            var leftSweeps = 0
+            let visDelay = 0.01
+            let probeSeq: [Int] = [1, 8, 32, 128]
+            while leftSweeps < maxSteps {
+                // Balayage jusqu'au bord gauche de la fenêtre courante
+                var movedThisSweep = 0
+                while let b = proxy.documentContextBeforeInput, !b.isEmpty {
+                    let offset = min(b.count, 50)
+                    DispatchQueue.main.sync { proxy.adjustTextPosition(byCharacterOffset: -offset) }
+                    totalLeft += offset
+                    movedThisSweep += offset
+                    Thread.sleep(forTimeInterval: visDelay)
+                    if (totalLeft + leftSweeps) > maxSteps { break }
+                }
+
+                // Probes avec pas croissant pour franchir les sauts de ligne ou limites
+                var progressed = false
+                for step in probeSeq {
+                    let b0 = proxy.documentContextBeforeInput ?? ""
+                    let a0 = proxy.documentContextAfterInput ?? ""
+                    let b0c = b0.count
+                    let a0c = a0.count
+                    DispatchQueue.main.sync { proxy.adjustTextPosition(byCharacterOffset: -step) }
+                    Thread.sleep(forTimeInterval: visDelay)
+                    let b1 = proxy.documentContextBeforeInput ?? ""
+                    let a1 = proxy.documentContextAfterInput ?? ""
+                    let b1c = b1.count
+                    let a1c = a1.count
+
+                    // Progrès réel si le caret a effectivement bougé (avant a augmenté ou après a diminué)
+                    let moved = (b1c > b0c) || (a1c < a0c) || (b0 != b1) || (a0 != a1)
+                    if moved {
+                        totalLeft += step
+                        movedThisSweep += step
+                        leftSweeps += 1
+                        progressed = true
+                        break
+                    } else {
+                        // Aucune avancée (probablement au tout début). NE PAS revenir, sinon on recule à tort.
+                        // On laisse le caret où il est (inchangé par l'appel précédent).
+                    }
+                }
+                if !progressed { break }
+                if (totalLeft + leftSweeps) > maxSteps { break }
+                // nouvelle passe pour exploiter le contexte fraîchement révélé
+                continue
+            }
+
+            self.debugLog("visual: movedLeft=\(totalLeft) (sweeps=\(leftSweeps))")
+
+            // 2) Balayer vers la droite; quand la fenêtre s'épuise, probes à pas croissant
+            //    et constituer le texte complet pendant le déplacement visuel.
+            var totalRight = 0
+            var rightHops = 0
+            var rightStalled = false
+            var assembled = ""
+            while rightHops < maxSteps {
+                var movedThisSweep = 0
+                while let a = proxy.documentContextAfterInput, !a.isEmpty {
+                    let hop = min(a.count, 50)
+                    let frag = String(a.prefix(hop))
+                    assembled += frag
+                    DispatchQueue.main.sync { proxy.adjustTextPosition(byCharacterOffset: hop) }
+                    totalRight += hop
+                    movedThisSweep += hop
+                    rightHops += 1
+                    Thread.sleep(forTimeInterval: visDelay)
+                    if rightHops > maxSteps { break }
+                }
+
+                if rightHops > maxSteps { break }
+
+                // Probes pour franchir les frontières (retours à la ligne, composants séparés)
+                var progressed = false
+                for step in probeSeq {
+                    let b0 = proxy.documentContextBeforeInput ?? ""
+                    let a0 = proxy.documentContextAfterInput ?? ""
+                    let b0c = b0.count
+                    let a0c = a0.count
+                    DispatchQueue.main.sync { proxy.adjustTextPosition(byCharacterOffset: step) }
+                    Thread.sleep(forTimeInterval: visDelay)
+                    let b1 = proxy.documentContextBeforeInput ?? ""
+                    let a1 = proxy.documentContextAfterInput ?? ""
+                    let b1c = b1.count
+                    let a1c = a1.count
+
+                    let rawDelta = max(0, b1c - b0c)
+                    let progress = min(step, rawDelta)
+                    let moved = (progress > 0) || (a1c < a0c) || (b0 != b1) || (a0 != a1)
+                    if moved {
+                        if progress > 0 {
+                            let newFrag = String(b1.suffix(progress))
+                            assembled += newFrag
+                            totalRight += progress
+                        } else if a0c > 0 && a1c < a0c {
+                            let take = min(step, a0c)
+                            let newFrag = String(a0.prefix(take))
+                            assembled += newFrag
+                            totalRight += take
+                        }
+                        rightHops += 1
+                        progressed = true
+                        break
+                    } else {
+                        // Ajustement +step n'a pas bougé (probablement à la vraie fin). Ne pas revenir en -step sinon on recule.
+                    }
+                }
+                if !progressed { rightStalled = true; break }
+            }
+
+            DispatchQueue.main.async {
+                self.debugLog("visual: movedRight=\(totalRight) (hops=\(rightHops))")
+                // Considérer 'succès' si: after est vide OU aucune progression possible malgré les probes.
+                let atEnd = (proxy.documentContextAfterInput?.isEmpty ?? true) || rightStalled
+                let count = totalLeft + totalRight
+                self.showStatus(atEnd ? "✓ Texte accessible (\(count) car.)" : "⚠️ Contexte limité (\(count) car.)", isError: !atEnd)
+                completion?(assembled, count, atEnd)
+            }
+        }
     }
 
     private func showPreviewContainer() {
@@ -125,14 +351,18 @@ class KeyboardViewController: UIInputViewController {
         proxy.insertText(improvedText)
 
         hidePreview()
-        showStatus("✓ Text improved!", isError: false)
+        let message = lastCaptureWasTruncated ? "✓ Text improved! (first \(originalText.count) chars only)" : "✓ Text improved!"
+        showStatus(message, isError: false)
+        lastCaptureWasTruncated = false
     }
 
     @objc private func handleInsertTapped() {
         let proxy = textDocumentProxy
         proxy.insertText(improvedText)
         hidePreview()
-        showStatus("✓ Inserted", isError: false)
+        let message = lastCaptureWasTruncated ? "✓ Inserted (first \(originalText.count) chars only)" : "✓ Inserted"
+        showStatus(message, isError: false)
+        lastCaptureWasTruncated = false
     }
 
     @objc private func handleCopyTapped() {

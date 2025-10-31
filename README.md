@@ -125,7 +125,7 @@ Service de communication avec l'API OpenAI.
 **Configuration:**
 - Modèle : `gpt-4o-mini` (rapide et économique)
 - Temperature : `0.3` (cohérence élevée)
-- Max tokens : `1000`
+- Max tokens sortie : `10000` (pour des réponses longues)
 - System prompt avec few-shot learning
 
 **System Prompt:**
