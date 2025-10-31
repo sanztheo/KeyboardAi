@@ -53,7 +53,6 @@ class KeyboardViewController: UIInputViewController {
         controlsView.improveButton.addTarget(self, action: #selector(handleImproveButtonTapped), for: .touchUpInside)
         // Home styling and quick actions
         KeyboardHomeStyling.apply(to: controlsView)
-        controlsView.homeButton.addTarget(self, action: #selector(handleHomeTapped), for: .touchUpInside)
         controlsView.deleteButton.addTarget(self, action: #selector(handleHomeDeleteTapped), for: .touchUpInside)
         controlsView.returnButton.addTarget(self, action: #selector(handleHomeReturnTapped), for: .touchUpInside)
         controlsView.spaceButton.addTarget(self, action: #selector(handleHomeSpaceTapped), for: .touchUpInside)
@@ -450,11 +449,6 @@ class KeyboardViewController: UIInputViewController {
     }
 
     // MARK: - Home quick actions
-    @objc private func handleHomeTapped() {
-        // If preview is visible, go back to home; else do nothing
-        if !improveWritingView.isHidden { hidePreview() }
-    }
-
     @objc private func handleHomeDeleteTapped() {
         textDocumentProxy.deleteBackward()
     }

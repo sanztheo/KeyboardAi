@@ -60,7 +60,6 @@ struct KeyboardHomeStyling {
         controls.spaceButton.layer.cornerRadius = 12
         controls.spaceButton.contentEdgeInsets = UIEdgeInsets(top: 10, left: 16, bottom: 10, right: 16)
 
-        styleSmall(controls.homeButton)
         styleSmall(controls.deleteButton)
         styleSmall(controls.returnButton)
     }

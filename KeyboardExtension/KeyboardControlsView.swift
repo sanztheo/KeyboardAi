@@ -38,12 +38,6 @@ final class KeyboardControlsView: UIView {
         b.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
         return b
     }()
-    let homeButton: UIButton = {
-        let b = UIButton(type: .system)
-        b.translatesAutoresizingMaskIntoConstraints = false
-        b.setImage(UIImage(systemName: "house.fill"), for: .normal)
-        return b
-    }()
 
     let deleteButton: UIButton = {
         let b = UIButton(type: .system)
