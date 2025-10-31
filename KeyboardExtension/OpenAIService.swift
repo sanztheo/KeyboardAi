@@ -52,6 +52,7 @@ Now improve this text:
         request.httpMethod = "POST"
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("keep-alive", forHTTPHeaderField: "Connection")
 
         let requestBody: [String: Any] = [
             "model": model,
@@ -60,7 +61,6 @@ Now improve this text:
                 ["role": "user", "content": text]
             ],
             "temperature": 0.3,
-            // Permettre des sorties longues si besoin (jusqu'à ~10k tokens)
             "max_tokens": 10_000,
             "stream": true
         ]
@@ -69,85 +69,59 @@ Now improve this text:
             completion(.failure(NSError(domain: "OpenAI", code: 400, userInfo: [NSLocalizedDescriptionKey: "Failed to encode request"])))
             return
         }
-
         request.httpBody = jsonData
 
-        let session = URLSession(configuration: .default, delegate: nil, delegateQueue: nil)
-        let task = session.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
+        if #available(iOS 15.0, *) {
+            Task(priority: .userInitiated) {
+                do {
+                    let (bytes, _) = try await URLSession.shared.bytes(for: request)
+                    var fullText = ""
 
-            guard let data = data else {
-                completion(.failure(NSError(domain: "OpenAI", code: 500, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
-                return
-            }
+                    for try await line in bytes.lines {
+                        // Ignore keep-alives and empty lines
+                        guard line.hasPrefix("data:") else { continue }
+                        let payload = line.dropFirst(5).trimmingCharacters(in: .whitespacesAndNewlines)
+                        if payload == "[DONE]" { break }
+                        guard let data = payload.data(using: .utf8),
+                              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                              let choices = json["choices"] as? [[String: Any]],
+                              let first = choices.first,
+                              let delta = first["delta"] as? [String: Any],
+                              let content = delta["content"] as? String, !content.isEmpty else {
+                            continue
+                        }
+                        fullText += content
+                        DispatchQueue.main.async {
+                            onStream(fullText)
+                        }
+                    }
 
-            // Parse streaming response
-            self.parseStreamingResponse(data: data, onStream: onStream, completion: completion)
-        }
-
-        task.resume()
-    }
-
-    private func parseStreamingResponse(data: Data, onStream: @escaping (String) -> Void, completion: @escaping (Result<String, Error>) -> Void) {
-        guard let responseString = String(data: data, encoding: .utf8) else {
-            completion(.failure(NSError(domain: "OpenAI", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid response encoding"])))
-            return
-        }
-
-        var fullText = ""
-        let lines = responseString.components(separatedBy: "\n")
-
-        for line in lines {
-            if line.hasPrefix("data: ") {
-                let jsonString = String(line.dropFirst(6))
-
-                if jsonString == "[DONE]" {
-                    continue
-                }
-
-                guard let jsonData = jsonString.data(using: .utf8),
-                      let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
-                      let choices = json["choices"] as? [[String: Any]],
-                      let firstChoice = choices.first,
-                      let delta = firstChoice["delta"] as? [String: Any],
-                      let content = delta["content"] as? String else {
-                    continue
-                }
-
-                fullText += content
-
-                // Call onStream with accumulated text for real-time update
-                DispatchQueue.main.async {
-                    onStream(fullText)
+                    DispatchQueue.main.async {
+                        completion(.success(fullText.trimmingCharacters(in: .whitespacesAndNewlines)))
+                    }
+                } catch {
+                    DispatchQueue.main.async { completion(.failure(error)) }
                 }
             }
-        }
-
-        if !fullText.isEmpty {
-            completion(.success(fullText.trimmingCharacters(in: .whitespacesAndNewlines)))
         } else {
-            // Fallback for non-streaming response
-            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let choices = json["choices"] as? [[String: Any]],
-               let firstChoice = choices.first,
-               let message = firstChoice["message"] as? [String: Any],
-               let content = message["content"] as? String {
-
-                let improvedText = content.trimmingCharacters(in: .whitespacesAndNewlines)
-                DispatchQueue.main.async {
-                    onStream(improvedText)
+            // Fallback non-streaming (iOS < 15)
+            var noStreamBody = requestBody
+            noStreamBody["stream"] = false
+            request.httpBody = try? JSONSerialization.data(withJSONObject: noStreamBody)
+            URLSession.shared.dataTask(with: request) { data, _, error in
+                if let error = error { completion(.failure(error)); return }
+                guard let data = data,
+                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                      let choices = json["choices"] as? [[String: Any]],
+                      let first = choices.first,
+                      let message = first["message"] as? [String: Any],
+                      let content = message["content"] as? String else {
+                    completion(.failure(NSError(domain: "OpenAI", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid response format"])))
+                    return
                 }
-                completion(.success(improvedText))
-            } else if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                      let error = json["error"] as? [String: Any],
-                      let errorMessage = error["message"] as? String {
-                completion(.failure(NSError(domain: "OpenAI", code: 400, userInfo: [NSLocalizedDescriptionKey: errorMessage])))
-            } else {
-                completion(.failure(NSError(domain: "OpenAI", code: 500, userInfo: [NSLocalizedDescriptionKey: "Invalid response format"])))
-            }
+                let improved = content.trimmingCharacters(in: .whitespacesAndNewlines)
+                DispatchQueue.main.async { onStream(improved); completion(.success(improved)) }
+            }.resume()
         }
     }
 }

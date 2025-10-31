@@ -16,6 +16,7 @@ final class ImproveWritingView: UIView {
         return textView
     }()
 
+    // Action buttons
     let refreshButton: UIButton = {
         let button = UIButton(type: .system)
         button.tintColor = .label
@@ -43,17 +44,6 @@ final class ImproveWritingView: UIView {
         let button = UIButton(type: .system)
         button.setTitle("Insert", for: .normal)
         button.backgroundColor = UIColor.systemBlue
-        button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
-        button.layer.cornerRadius = 10
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-
-    let copyButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Copy", for: .normal)
-        button.backgroundColor = UIColor.systemGray
         button.setTitleColor(.white, for: .normal)
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
         button.layer.cornerRadius = 10
@@ -91,10 +81,10 @@ final class ImproveWritingView: UIView {
 
         addSubview(header)
         header.addSubview(titleLabel)
-        header.addSubview(refreshButton)
         addSubview(textView)
 
-        let buttonStack = UIStackView(arrangedSubviews: [replaceButton, insertButton, copyButton])
+        // Bottom action bar
+        let buttonStack = UIStackView(arrangedSubviews: [replaceButton, insertButton, refreshButton])
         buttonStack.axis = .horizontal
         buttonStack.distribution = .fillEqually
         buttonStack.spacing = 8
@@ -110,13 +100,9 @@ final class ImproveWritingView: UIView {
             titleLabel.leadingAnchor.constraint(equalTo: header.leadingAnchor),
             titleLabel.centerYAnchor.constraint(equalTo: header.centerYAnchor),
 
-            refreshButton.trailingAnchor.constraint(equalTo: header.trailingAnchor),
-            refreshButton.centerYAnchor.constraint(equalTo: header.centerYAnchor),
-
             textView.topAnchor.constraint(equalTo: header.bottomAnchor, constant: 10),
             textView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             textView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-
             buttonStack.topAnchor.constraint(equalTo: textView.bottomAnchor, constant: 12),
             buttonStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             buttonStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
@@ -130,10 +116,34 @@ final class ImproveWritingView: UIView {
     }
 
     func setText(_ text: String) {
-        textView.text = text
+        // Update text and auto-scroll to bottom during streaming on main thread.
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.textView.text = text
+            let end = NSRange(location: max(0, (text as NSString).length), length: 0)
+            self.textView.selectedRange = end
+            self.textView.scrollRangeToVisible(end)
+        }
     }
 
     func clearText() {
         textView.text = ""
+    }
+
+    // MARK: - Refresh animations
+    func startRefreshAnimating() {
+        let key = "spin"
+        if refreshButton.imageView?.layer.animation(forKey: key) != nil { return }
+        let rotation = CABasicAnimation(keyPath: "transform.rotation.z")
+        rotation.fromValue = 0
+        rotation.toValue = Double.pi * 2
+        rotation.duration = 0.9
+        rotation.repeatCount = .infinity
+        (refreshButton.imageView?.layer ?? refreshButton.layer).add(rotation, forKey: key)
+    }
+
+    func stopRefreshAnimating() {
+        let key = "spin"
+        (refreshButton.imageView?.layer ?? refreshButton.layer).removeAnimation(forKey: key)
     }
 }

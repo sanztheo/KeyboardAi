@@ -30,32 +30,7 @@ final class KeyboardControlsView: UIView {
         return label
     }()
 
-    let nextKeyboardButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("🌐", for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 20)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-
-    let clipboardButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("📋", for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 18)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
-
-    let selectAllButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Tout", for: .normal)
-        button.backgroundColor = UIColor.systemOrange
-        button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 14)
-        button.layer.cornerRadius = 10
-        button.translatesAutoresizingMaskIntoConstraints = false
-        return button
-    }()
+    // Removed other buttons (globe/clipboard/Tout) per new design
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -74,9 +49,7 @@ final class KeyboardControlsView: UIView {
         addSubview(improveButton)
         addSubview(loadingIndicator)
         addSubview(statusLabel)
-        addSubview(nextKeyboardButton)
-        addSubview(clipboardButton)
-        addSubview(selectAllButton)
+        // Only the Improve button + status remain
 
         NSLayoutConstraint.activate([
             improveButton.centerXAnchor.constraint(equalTo: centerXAnchor),
@@ -89,22 +62,7 @@ final class KeyboardControlsView: UIView {
 
             statusLabel.topAnchor.constraint(equalTo: improveButton.bottomAnchor, constant: 10),
             statusLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
-            statusLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-
-            nextKeyboardButton.leftAnchor.constraint(equalTo: leftAnchor, constant: 10),
-            nextKeyboardButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
-            nextKeyboardButton.widthAnchor.constraint(equalToConstant: 40),
-            nextKeyboardButton.heightAnchor.constraint(equalToConstant: 40),
-
-            clipboardButton.leftAnchor.constraint(equalTo: nextKeyboardButton.rightAnchor, constant: 8),
-            clipboardButton.centerYAnchor.constraint(equalTo: nextKeyboardButton.centerYAnchor),
-            clipboardButton.widthAnchor.constraint(equalToConstant: 40),
-            clipboardButton.heightAnchor.constraint(equalToConstant: 40),
-
-            selectAllButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-            selectAllButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
-            selectAllButton.widthAnchor.constraint(equalToConstant: 64),
-            selectAllButton.heightAnchor.constraint(equalToConstant: 40)
+            statusLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10)
         ])
     }
 }

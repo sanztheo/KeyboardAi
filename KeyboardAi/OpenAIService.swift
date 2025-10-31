@@ -60,8 +60,8 @@ Now improve this text:
                 ["role": "user", "content": text]
             ],
             "temperature": 0.3,
-            // Permettre des sorties longues si besoin (jusqu'à ~10k tokens)
-            "max_tokens": 10_000
+            "max_tokens": 10_000,
+            "stream": false
         ]
 
         guard let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else {

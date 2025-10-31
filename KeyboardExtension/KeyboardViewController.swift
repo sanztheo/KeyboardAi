@@ -50,9 +50,6 @@ class KeyboardViewController: UIInputViewController {
         ])
 
         controlsView.improveButton.addTarget(self, action: #selector(handleImproveButtonTapped), for: .touchUpInside)
-        controlsView.nextKeyboardButton.addTarget(self, action: #selector(handleInputModeList(from:with:)), for: .allTouchEvents)
-        controlsView.selectAllButton.addTarget(self, action: #selector(handleSelectAllTapped), for: .touchUpInside)
-        controlsView.clipboardButton.addTarget(self, action: #selector(handleClipboardTapped), for: .touchUpInside)
     }
 
     private func setupImproveWritingView() {
@@ -69,7 +66,6 @@ class KeyboardViewController: UIInputViewController {
 
         improveWritingView.replaceButton.addTarget(self, action: #selector(handleReplaceTapped), for: .touchUpInside)
         improveWritingView.insertButton.addTarget(self, action: #selector(handleInsertTapped), for: .touchUpInside)
-        improveWritingView.copyButton.addTarget(self, action: #selector(handleCopyTapped), for: .touchUpInside)
         improveWritingView.refreshButton.addTarget(self, action: #selector(handleRefreshTapped), for: .touchUpInside)
     }
 
@@ -137,41 +133,7 @@ class KeyboardViewController: UIInputViewController {
         }
     }
 
-    @objc private func handleSelectAllTapped() {
-        debugLog("SelectAll tapped")
-        // Version visuelle: le curseur se déplace réellement à l'écran
-        selectAllTextVisual()
-    }
-
-    @objc private func handleClipboardTapped() {
-        #if canImport(UIKit)
-        let pb = UIPasteboard.general
-        guard let s = pb.string, !s.isEmpty else {
-            showStatus("Presse-papiers vide", isError: true)
-            return
-        }
-        debugLog("Clipboard text length=\(s.count)")
-        lastCaptureWasTruncated = false
-        originalText = s
-        setLoading(true)
-        controlsView.statusLabel.text = "Improving (clipboard)..."
-        showPreviewContainer()
-        OpenAIService.shared.improveText(s, onStream: { [weak self] streamed in
-            self?.improveWritingView.setText(streamed)
-            self?.improvedText = streamed
-        }, completion: { [weak self] result in
-            switch result {
-            case .success(let final):
-                self?.improvedText = final
-                self?.improveWritingView.setText(final)
-            case .failure(let err):
-                self?.hidePreview()
-                self?.showStatus("Erreur: \(err.localizedDescription)", isError: true)
-            }
-            self?.setLoading(false)
-        })
-        #endif
-    }
+    // Removed Select All and Clipboard button handlers per new design
 
     /// Best-effort: lit tout le texte accessible via le proxy en
     /// balayant depuis le bord gauche jusqu'au bord droit exposé par l'app hôte.
@@ -365,16 +327,14 @@ class KeyboardViewController: UIInputViewController {
         lastCaptureWasTruncated = false
     }
 
-    @objc private func handleCopyTapped() {
-        #if canImport(UIKit)
-        UIPasteboard.general.string = improvedText
-        #endif
-        showStatus("✓ Copied", isError: false)
-    }
-
     @objc private func handleRefreshTapped() {
         guard !originalText.isEmpty else { return }
-        setLoading(true)
+        // Haptique + petite rotation du bouton
+        let impact = UIImpactFeedbackGenerator(style: .medium)
+        impact.prepare()
+        impact.impactOccurred(intensity: 0.9)
+
+        improveWritingView.startRefreshAnimating()
         improveWritingView.clearText()
         improvedText = ""
         OpenAIService.shared.improveText(originalText, onStream: { [weak self] streamedText in
@@ -384,10 +344,15 @@ class KeyboardViewController: UIInputViewController {
             }
         }, completion: { [weak self] result in
             DispatchQueue.main.async {
-                self?.setLoading(false)
+                self?.improveWritingView.stopRefreshAnimating()
                 if case .failure(let error) = result {
+                    let notif = UINotificationFeedbackGenerator()
+                    notif.notificationOccurred(.error)
                     self?.hidePreview()
                     self?.showStatus("Error: \(error.localizedDescription)", isError: true)
+                } else {
+                    let notif = UINotificationFeedbackGenerator()
+                    notif.notificationOccurred(.success)
                 }
             }
         })
@@ -438,7 +403,6 @@ class KeyboardViewController: UIInputViewController {
 
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        controlsView.nextKeyboardButton.isHidden = !needsInputModeSwitchKey
     }
 
     override func textWillChange(_ textInput: UITextInput?) {
@@ -446,8 +410,6 @@ class KeyboardViewController: UIInputViewController {
     }
 
     override func textDidChange(_ textInput: UITextInput?) {
-        let proxy = textDocumentProxy
-        let textColor: UIColor = proxy.keyboardAppearance == .dark ? .white : .label
-        controlsView.nextKeyboardButton.setTitleColor(textColor, for: [])
+        _ = textInput  // no-op; keep signature
     }
 }
