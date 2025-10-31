@@ -3,10 +3,7 @@ import UIKit
 final class KeyboardControlsView: UIView {
     let improveButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("✨ Improve Writing", for: .normal)
-        button.backgroundColor = UIColor.systemPurple
-        button.setTitleColor(.white, for: .normal)
-        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
+        // Styling applied externally by KeyboardHomeStyling
         button.layer.cornerRadius = 12
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
@@ -14,7 +11,7 @@ final class KeyboardControlsView: UIView {
 
     let loadingIndicator: UIActivityIndicatorView = {
         let indicator = UIActivityIndicatorView(style: .medium)
-        indicator.color = .white
+        indicator.color = .gray
         indicator.hidesWhenStopped = true
         indicator.translatesAutoresizingMaskIntoConstraints = false
         return indicator
@@ -74,5 +71,32 @@ final class KeyboardControlsView: UIView {
             bottomBar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10)
         ])
         
+    }
+
+    // MARK: - Public UI helpers
+    func setImproving(_ loading: Bool) {
+        if loading {
+            if #available(iOS 15.0, *), var cfg = improveButton.configuration {
+                cfg.showsActivityIndicator = true
+                cfg.image = nil
+                cfg.title = ""
+                improveButton.configuration = cfg
+            } else {
+                improveButton.setTitle("", for: .normal)
+                loadingIndicator.startAnimating()
+            }
+            improveButton.isEnabled = false
+        } else {
+            if #available(iOS 15.0, *), var cfg = improveButton.configuration {
+                cfg.showsActivityIndicator = false
+                cfg.image = UIImage(systemName: "sparkles")
+                cfg.title = "Improve Writing"
+                improveButton.configuration = cfg
+            } else {
+                improveButton.setTitle("✨ Improve Writing", for: .normal)
+                loadingIndicator.stopAnimating()
+            }
+            improveButton.isEnabled = true
+        }
     }
 }

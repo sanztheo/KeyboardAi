@@ -91,6 +91,23 @@ Sortie  : I want to go to the store today to maybe buy something.
 
 ## Architecture
 
+### Vues et style (nouveau découpage)
+
+```
+KeyboardExtension/
+ ├─ Views/
+ │  ├─ KBColor.swift                 # Palette centralisée (tileBG, midGreyText…)
+ │  ├─ KeyboardHomeStyling.swift     # Style de l'accueil (Improve + barre du bas)
+ │  ├─ KeyboardControlsView.swift    # Conteneur accueil (Improve + status + BottomActionBar)
+ │  ├─ BottomActionBarView.swift     # Barre [space | delete | return] (layout fill)
+ │  └─ ImproveWritingView.swift      # Panneau d'aperçu IA (stream + Insert/Replace/Reload/Back)
+ ├─ KeyboardViewController.swift     # Orchestration + câblage des actions
+ ├─ TextProxyBestEffort.swift        # Lecture complète via proxy (balayage + probes)
+ └─ OpenAIService.swift              # Streaming SSE (iOS 15+) + fallback
+```
+
+Conseil Xcode: si vous voyez des fichiers grisés après ce déplacement, glissez‑déposez le dossier `Views/` dans la cible `KeyboardExtension` pour mettre à jour les références.
+
 ```
 KeyboardAi/
 ├─ KeyboardAi/                     # Application hôte (clé API, test, guides)
@@ -100,8 +117,7 @@ KeyboardAi/
 │
 └─ KeyboardExtension/              # Extension de clavier
    ├─ KeyboardViewController.swift # Orchestration UI + logique
-   ├─ ImproveWritingView.swift     # Aperçu + actions (Replace/Insert/Copy…)
-   ├─ KeyboardControlsView.swift   # Bouton principal + état
+   ├─ Views/…                      # Vues et style extraits (voir ci‑dessus)
    ├─ TextProxyBestEffort.swift    # Lecture « tout le texte accessible »
    └─ OpenAIService.swift          # Extension: requêtes streaming (iOS 15+)
 ```
