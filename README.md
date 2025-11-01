@@ -4,7 +4,7 @@
 
 # AI Writing Assistant Keyboard for iOS | KeyboardAi
 
-**AI-Powered iOS Keyboard Extension** that improves your writing with GPT-4o-mini in real-time. Enhance grammar, style, and clarity directly in any iOS app — Messages, Mail, Notes, and more.
+**AI-Powered iOS Keyboard Extension** that improves your writing with GPT-4o-mini in real-time. Enhance grammar, style, and clarity directly in any iOS app - Messages, Mail, Notes, and more.
 
 **Keywords**: AI Writing Assistant, iOS Keyboard Extension, GPT-4 Keyboard, AI Text Enhancement, Grammar Correction iOS, Writing Improvement Tool, OpenAI Keyboard, Smart Keyboard iOS, AI Content Generator, Real-Time Text Processing
 
@@ -33,7 +33,7 @@
 
 ## Overview
 
-**KeyboardAi** is an advanced **AI-powered iOS keyboard extension** that revolutionizes your mobile writing experience. Using **OpenAI's GPT-4o-mini**, this intelligent keyboard rewrites and refines your text in real-time to make it clearer, more correct, and more natural — all without leaving your current app.
+**KeyboardAi** is an advanced **AI-powered iOS keyboard extension** that revolutionizes your mobile writing experience. Using **OpenAI's GPT-4o-mini**, this intelligent keyboard rewrites and refines your text in real-time to make it clearer, more correct, and more natural - all without leaving your current app.
 
 Perfect for:
 - **Content creators** writing social media posts
@@ -57,14 +57,14 @@ Perfect for:
 
 ## Security & Privacy
 
-**Privacy-First AI Keyboard Design** — Your data security is our priority:
+**Privacy-First AI Keyboard Design** - Your data security is our priority:
 
 - 🔐 **Secure API Key Storage**: OpenAI API keys stored in iOS Keychain (military-grade encryption)
 - 🛡️ **App Group Isolation**: Secure data sharing via `group.tye.KeyboardAi`
 - 🚫 **No Data Collection**: Zero built-in analytics or tracking
 - 🔒 **HTTPS Only**: All API requests encrypted end-to-end
 - ✅ **User Control**: Text sent to OpenAI only when you explicitly trigger AI actions
-- 📝 **Open Source**: Full transparency — inspect the code yourself
+- 📝 **Open Source**: Full transparency - inspect the code yourself
 
 ## Requirements
 
