@@ -1,10 +1,12 @@
 <div align="center">
 
-<img src="img/banner.png" alt="KeyboardAi banner" width="100%" />
+<img src="img/banner.png" alt="AI Writing Assistant iOS Keyboard - KeyboardAi banner" width="100%" />
 
-# KeyboardAi — iOS Keyboard that Improves Your Writing with AI
+# AI Writing Assistant Keyboard for iOS | KeyboardAi
 
-Improve grammar, style, and clarity in one tap — right from an iOS keyboard. Powered by OpenAI `gpt-4o-mini`, real‑time streaming, and a privacy‑first design.
+**AI-Powered iOS Keyboard Extension** that improves your writing with GPT-4o-mini in real-time. Enhance grammar, style, and clarity directly in any iOS app — Messages, Mail, Notes, and more.
+
+**Keywords**: AI Writing Assistant, iOS Keyboard Extension, GPT-4 Keyboard, AI Text Enhancement, Grammar Correction iOS, Writing Improvement Tool, OpenAI Keyboard, Smart Keyboard iOS, AI Content Generator, Real-Time Text Processing
 
 <br/>
 
@@ -31,26 +33,38 @@ Improve grammar, style, and clarity in one tap — right from an iOS keyboard. P
 
 ## Overview
 
-KeyboardAi is an iOS keyboard that rewrites and refines your text to make it clearer, more correct, and more natural — without leaving your app. The extension reads the accessible text around the cursor, sends a request to the OpenAI API, and shows a live preview you can insert or replace.
+**KeyboardAi** is an advanced **AI-powered iOS keyboard extension** that revolutionizes your mobile writing experience. Using **OpenAI's GPT-4o-mini**, this intelligent keyboard rewrites and refines your text in real-time to make it clearer, more correct, and more natural — all without leaving your current app.
 
-> Recommended: iOS 15+ (streaming). iOS < 15 is supported with non‑streaming mode.
+Perfect for:
+- **Content creators** writing social media posts
+- **Professionals** crafting emails and messages
+- **Students** improving academic writing
+- **Anyone** who wants better grammar and clarity on iOS
+
+> **Technical Requirements**: iOS 15+ (streaming support). iOS < 15 supported with non‑streaming mode.
 
 ## Features
 
-- One‑tap improvement: “✨ Improve Writing”
-- Shorten text: “Make Shorter” (concise without losing meaning)
-- Lengthen text: “Make Longer” (expands, adds transitions)
-- Live preview: streamed result, then Replace / Insert / Copy
-- Best‑effort context reading via `textDocumentProxy`
-- Clear design, status indicators, and haptic feedback
+### AI-Powered Writing Enhancement
+- **✨ Improve Writing**: One-tap AI grammar correction and style enhancement
+- **📝 Make Shorter**: AI text summarization maintaining core meaning
+- **📄 Make Longer**: AI content expansion with smooth transitions
+- **⚡ Real-Time Streaming**: Live preview with GPT-4o-mini powered suggestions
+- **🔄 Smart Actions**: Replace, Insert, or Copy AI-generated text
+- **🎯 Context-Aware**: Reads surrounding text for better AI suggestions
+- **📱 Universal iOS Support**: Works in Messages, Mail, Notes, Safari, and all iOS apps
+- **🎨 Modern UI**: Clean design with status indicators and haptic feedback
 
 ## Security & Privacy
 
-- API key stored securely in the iOS Keychain
-- Secure sharing via App Groups (app + keyboard) `group.tye.KeyboardAi`
-- No API key in plain text in the repo
-- Encrypted (HTTPS) calls only to the OpenAI API
-- No built‑in analytics; only text sent upon explicit user action is transmitted to the API
+**Privacy-First AI Keyboard Design** — Your data security is our priority:
+
+- 🔐 **Secure API Key Storage**: OpenAI API keys stored in iOS Keychain (military-grade encryption)
+- 🛡️ **App Group Isolation**: Secure data sharing via `group.tye.KeyboardAi`
+- 🚫 **No Data Collection**: Zero built-in analytics or tracking
+- 🔒 **HTTPS Only**: All API requests encrypted end-to-end
+- ✅ **User Control**: Text sent to OpenAI only when you explicitly trigger AI actions
+- 📝 **Open Source**: Full transparency — inspect the code yourself
 
 ## Requirements
 
